@@ -37,3 +37,6 @@ Fontend/.cache/
 # OS
 .DS_Store
 Thumbs.db
+
+# Tunnel logs
+cloudflared-*.log

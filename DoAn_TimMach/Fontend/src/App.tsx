@@ -1,187 +1,334 @@
 import { useState, useEffect } from 'react';
-import { Heart, Activity, Users, FileText, BarChart3, User, AlertCircle } from 'lucide-react';
-import { PatientForm } from './components/PatientForm';
-import { RiskScoreCard } from './components/RiskScoreCard';
-import { ECGPreview } from './components/ECGPreview';
-import { RiskTrendChart } from './components/RiskTrendChart';
-import { FeatureImportanceChart } from './components/FeatureImportanceChart';
-import { PatientSummary } from './components/PatientSummary';
-import { RecentRecords } from './components/RecentRecords';
-import { apiService, type PatientData, type PredictionResult } from './services/api';
-
-// Thông tin người dùng mặc định
-const defaultUser = {
-  name: 'Bác sĩ Demo',
-  email: 'viho317@gmail.com',
-  department: 'Khoa Tim mạch'
-};
+import {
+  Heart, Activity, Users, FileText, BarChart3,
+  User, LogOut, House, ChevronRight, Wifi, SlidersHorizontal
+} from 'lucide-react';
+import { DashboardPage } from './pages/DashboardPage';
+import { PatientsPage } from './pages/PatientsPage';
+import { ReportsPage } from './pages/ReportsPage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
+import { PersonalizationPage } from './pages/PersonalizationPage';
+import { applyUiPreferences, readUiPreferences, UI_PREFS_UPDATED_EVENT, type UiPreferences } from './utils/uiPreferences';
 
 export default function App() {
-  const [activeNav, setActiveNav] = useState('dashboard');
-  const [riskScore, setRiskScore] = useState<number | null>(null);
-  const [patientData, setPatientData] = useState<PatientData | null>(null);
-  const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const initialPrefs = readUiPreferences();
+  const [uiPrefs, setUiPrefs] = useState<UiPreferences>(initialPrefs);
+  const [activeNav, setActiveNav] = useState(initialPrefs.defaultPage);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
 
-  const handlePredict = async (data: PatientData) => {
-    setIsLoading(true);
-    setError(null);
-    setPatientData(data);
+  useEffect(() => {
+    applyUiPreferences(uiPrefs);
+  }, [uiPrefs]);
+
+  useEffect(() => {
+    const onPrefsUpdated = () => {
+      const next = readUiPreferences();
+      setUiPrefs(next);
+    };
+
+    window.addEventListener(UI_PREFS_UPDATED_EVENT, onPrefsUpdated as EventListener);
+    return () => {
+      window.removeEventListener(UI_PREFS_UPDATED_EVENT, onPrefsUpdated as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('daivid_auth_token');
+    if (!token) {
+      window.location.href = '/landing.html';
+      return;
+    }
+    setIsAuthenticated(true);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('daivid_auth_token');
+    localStorage.removeItem('daivid_user');
+    window.location.href = '/landing.html';
+  };
+
+  const handleGoToLanding = () => {
+    window.location.href = '/landing.html';
+  };
+
+  const getUserName = (): string => {
+    if (uiPrefs.displayName.trim()) {
+      return uiPrefs.displayName.trim();
+    }
 
     try {
-      const result = await apiService.predict(data);
-      setPredictionResult(result);
-      setRiskScore(result.risk_score);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Có lỗi xảy ra khi dự đoán';
-      setError(errorMessage);
-      // Fallback: tính toán local nếu server không hoạt động
-      const mockScore = calculateLocalRisk(data);
-      setRiskScore(mockScore);
-      setPredictionResult({
-        prediction: mockScore > 50 ? 1 : 0,
-        risk_score: mockScore,
-        risk_level: mockScore < 30 ? 'low' : mockScore < 50 ? 'medium' : 'high',
-        message: mockScore > 50 ? 'CÓ NGUY CƠ mắc bệnh tim' : 'KHÔNG CÓ nguy cơ mắc bệnh tim',
-        factors: []
-      });
-    } finally {
-      setIsLoading(false);
+      const userStr = localStorage.getItem('daivid_user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return user.fullName || user.name || user.username || 'Người dùng';
+      }
+    } catch { /* ignore */ }
+    return 'Người dùng';
+  };
+
+  const getUserRoleLabel = (): string => {
+    try {
+      const userStr = localStorage.getItem('daivid_user');
+      if (!userStr) return 'Người dùng';
+
+      const user = JSON.parse(userStr);
+      const rawRole = String(user.role || user.userRole || '').trim().toLowerCase();
+
+      const roleMap: Record<string, string> = {
+        admin: 'Quản trị viên',
+        doctor: 'Bác sĩ',
+        specialist: 'Chuyên gia',
+        nurse: 'Điều dưỡng',
+        staff: 'Nhân viên y tế',
+        user: 'Người dùng',
+      };
+
+      return roleMap[rawRole] || 'Người dùng';
+    } catch {
+      return 'Người dùng';
     }
   };
 
-  // Tính toán nguy cơ local (backup khi server offline)
-  const calculateLocalRisk = (data: PatientData): number => {
-    let risk = 10;
-    if (data.age > 60) risk += 20;
-    else if (data.age > 50) risk += 15;
-    if (data.sex === 1) risk += 10;
-    if (data.cp >= 2) risk += 15;
-    if (data.trestbps > 140) risk += 15;
-    if (data.chol > 240) risk += 15;
-    if (data.fbs === 1) risk += 10;
-    if (data.thalach < 120) risk += 15;
-    if (data.exang === 1) risk += 15;
-    if (data.oldpeak > 2) risk += 15;
-    risk += data.ca * 10;
-    return Math.min(risk, 95);
+  const getUserInitials = (): string => {
+    const name = getUserName();
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
   };
 
+  if (!isAuthenticated) return null;
+
+  const getPageTitle = () => {
+    switch (activeNav) {
+      case 'dashboard': return { title: 'Bảng điều khiển', subtitle: 'Tổng quan hệ thống dự đoán nguy cơ tim mạch' };
+      case 'patients': return { title: 'Lịch sử chẩn đoán', subtitle: 'Xem lại các kết quả chẩn đoán AI' };
+      case 'reports': return { title: 'Báo cáo', subtitle: 'Thống kê tổng hợp dữ liệu chẩn đoán' };
+      case 'analytics': return { title: 'Phân tích sức khỏe tim mạch', subtitle: 'Thống kê và đánh giá nguy cơ dựa trên dữ liệu' };
+      case 'personalization': return { title: 'Cá nhân hóa', subtitle: 'Tùy chỉnh trải nghiệm theo sở thích của bạn' };
+      default: return { title: 'AI Dự đoán bệnh tim mạch', subtitle: 'Hệ thống dự đoán nguy cơ' };
+    }
+  };
+
+  const pageInfo = getPageTitle();
+
+  const navItems = [
+    { key: 'dashboard', label: 'Bảng điều khiển', icon: Activity, desc: 'Tổng quan & dự đoán' },
+    { key: 'patients', label: 'Lịch sử', icon: Users, desc: 'Chẩn đoán đã lưu' },
+    { key: 'reports', label: 'Báo cáo', icon: FileText, desc: 'Thống kê tổng hợp' },
+    { key: 'analytics', label: 'Phân tích', icon: BarChart3, desc: 'Biểu đồ & xu hướng' },
+    { key: 'personalization', label: 'Cá nhân hóa', icon: SlidersHorizontal, desc: 'Thiết lập theo sở thích' },
+  ];
+
   return (
-    <div className="h-screen w-screen flex bg-white overflow-hidden">
-      {/* Left Sidebar */}
-      <aside className="w-64 bg-[#FAFBFC] border-r border-[#E5E7EB] flex flex-col">
-        <div className="p-6 border-b border-[#E5E7EB]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#C62828] rounded-lg flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white" fill="white" />
+    <div className="h-screen w-screen flex overflow-hidden" style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif", background: '#f0f2f7' }}>
+
+      {/* ── LEFT SIDEBAR ── */}
+      <aside
+        className="flex flex-col overflow-hidden"
+        style={{
+          width: '260px',
+          minWidth: '260px',
+          background: 'linear-gradient(160deg, #1a0505 0%, #2d0a0a 40%, #0d0505 100%)',
+          boxShadow: '4px 0 24px rgba(0,0,0,0.35)',
+          borderRight: '1px solid rgba(255,100,100,0.08)',
+          position: 'relative',
+        }}
+      >
+        {/* Decorative blobs */}
+        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(198,40,40,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '80px', left: '-60px', width: '200px', height: '200px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(198,40,40,0.10) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+        {/* Brand */}
+        <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '42px', height: '42px', borderRadius: '12px',
+              background: 'linear-gradient(135deg, #ff4d4f, #c62828)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(255,77,79,0.45)',
+              flexShrink: 0,
+            }}>
+              <Heart size={22} fill="white" color="white" style={{ animation: 'heartbeat 1.6s ease-in-out infinite' }} />
             </div>
             <div>
-              <h1 className="text-base font-medium text-gray-900">Daivid AI</h1>
-              <p className="text-xs text-[#6B7280]">Phiên bản 1.0</p>
+              <div style={{ color: '#fff', fontWeight: 700, fontSize: '15px', letterSpacing: '-0.2px' }}>CardioPredict AI</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px #4ade80', animation: 'pulse-beacon 2s ease-in-out infinite' }} />
+                <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: '11px' }}>Phiên bản 1.0 • Online</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          <button
-            onClick={() => setActiveNav('dashboard')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeNav === 'dashboard'
-              ? 'bg-[#C62828] text-white'
-              : 'text-[#6B7280] hover:bg-white hover:text-gray-900'
-              }`}
-          >
-            <Activity className="w-5 h-5" />
-            <span className="text-sm">Bảng điều khiển</span>
-          </button>
+        {/* Label */}
+        <div style={{ padding: '16px 20px 8px' }}>
+          <span style={{ color: 'rgba(255,255,255,0.28)', fontSize: '10px', fontWeight: 600, letterSpacing: '1.2px', textTransform: 'uppercase' }}>Điều hướng</span>
+        </div>
 
-          <button
-            onClick={() => setActiveNav('patients')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeNav === 'patients'
-              ? 'bg-[#C62828] text-white'
-              : 'text-[#6B7280] hover:bg-white hover:text-gray-900'
-              }`}
-          >
-            <Users className="w-5 h-5" />
-            <span className="text-sm">Bệnh nhân</span>
-          </button>
+        {/* Nav items */}
+        <nav style={{ flex: 1, padding: '0 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {navItems.map((item) => {
+            const isActive = activeNav === item.key;
+            const isHovered = hoveredNav === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => setActiveNav(item.key)}
+                onMouseEnter={() => setHoveredNav(item.key)}
+                onMouseLeave={() => setHoveredNav(null)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '10px 14px', borderRadius: '12px', border: 'none', cursor: 'pointer',
+                  transition: 'all 0.22s cubic-bezier(.4,0,.2,1)',
+                  background: isActive
+                    ? 'linear-gradient(135deg, rgba(255,77,79,0.25), rgba(255,77,79,0.12))'
+                    : isHovered ? 'rgba(255,255,255,0.06)' : 'transparent',
+                  boxShadow: isActive ? 'inset 0 0 0 1px rgba(255,77,79,0.35), 0 4px 12px rgba(198,40,40,0.2)' : 'none',
+                  position: 'relative', textAlign: 'left',
+                }}
+              >
+                {/* Active bar */}
+                {isActive && (
+                  <div style={{
+                    position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)',
+                    width: '3px', height: '24px', borderRadius: '0 4px 4px 0',
+                    background: 'linear-gradient(180deg, #ff7875, #ff4d4f)',
+                    boxShadow: '0 0 8px rgba(255,77,79,0.8)',
+                  }} />
+                )}
 
-          <button
-            onClick={() => setActiveNav('reports')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeNav === 'reports'
-              ? 'bg-[#C62828] text-white'
-              : 'text-[#6B7280] hover:bg-white hover:text-gray-900'
-              }`}
-          >
-            <FileText className="w-5 h-5" />
-            <span className="text-sm">Báo cáo</span>
-          </button>
+                {/* Icon */}
+                <div style={{
+                  width: '34px', height: '34px', borderRadius: '10px', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  background: isActive ? 'rgba(255,77,79,0.25)' : 'rgba(255,255,255,0.06)',
+                  transition: 'all 0.22s cubic-bezier(.4,0,.2,1)',
+                  transform: isHovered && !isActive ? 'rotate(5deg) scale(1.12)' : 'none',
+                }}>
+                  <item.icon size={16} color={isActive ? '#ff7875' : 'rgba(255,255,255,0.55)'} />
+                </div>
 
-          <button
-            onClick={() => setActiveNav('analytics')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeNav === 'analytics'
-              ? 'bg-[#C62828] text-white'
-              : 'text-[#6B7280] hover:bg-white hover:text-gray-900'
-              }`}
-          >
-            <BarChart3 className="w-5 h-5" />
-            <span className="text-sm">Phân tích</span>
-          </button>
+                {/* Label + desc */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: isActive ? '#fff' : 'rgba(255,255,255,0.65)', fontWeight: isActive ? 600 : 500, fontSize: '13.5px', lineHeight: 1.2 }}>
+                    {item.label}
+                  </div>
+                  <div style={{ color: isActive ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.28)', fontSize: '10.5px', marginTop: '2px' }}>
+                    {item.desc}
+                  </div>
+                </div>
+
+                {isActive && <ChevronRight size={14} color="rgba(255,120,117,0.7)" />}
+              </button>
+            );
+          })}
         </nav>
 
-        <div className="p-4 border-t border-[#E5E7EB]">
-          <div className="text-xs text-[#6B7280] text-center">
-            © 2026 Daivid AI
+        {/* Footer */}
+        <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+          <div style={{
+            background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '12px',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '34px', height: '34px', borderRadius: '50%', flexShrink: 0,
+                background: 'linear-gradient(135deg, #1677ff, #0958d9)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontSize: '12px', fontWeight: 700,
+                boxShadow: '0 2px 8px rgba(22,119,255,0.4)',
+              }}>
+                {getUserInitials()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: '12.5px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {getUserName()}
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '10.5px' }}>{getUserRoleLabel()}</div>
+              </div>
+              <button
+                onClick={handleLogout}
+                title="Đăng xuất"
+                style={{
+                  width: '30px', height: '30px', borderRadius: '8px', border: 'none',
+                  background: 'rgba(255,77,79,0.12)', cursor: 'pointer', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,77,79,0.3)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,77,79,0.12)'; }}
+              >
+                <LogOut size={13} color="#ff7875" />
+              </button>
+            </div>
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header */}
-        <header className="h-16 bg-white border-b border-[#E5E7EB] flex items-center justify-between px-8">
-          <div>
-            <h1 className="text-xl font-medium text-gray-900">AI Dự đoán bệnh tim mạch</h1>
-            <p className="text-sm text-[#6B7280]">Hệ thống dự đoán nguy cơ bệnh tim mạch dựa trên AI</p>
+      {/* ── MAIN CONTENT ── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+
+        {/* TOP HEADER */}
+        <header style={{
+          height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 28px', flexShrink: 0,
+          background: 'rgba(255,255,255,0.82)',
+          backdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(0,0,0,0.06)',
+          boxShadow: '0 1px 16px rgba(0,0,0,0.06)',
+          position: 'relative', zIndex: 10,
+        }}>
+          {/* Breadcrumb */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={handleGoToLanding}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#6b7280', fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: '6px', transition: 'all 0.18s ease' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(198,40,40,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#c62828'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = '#6b7280'; }}
+            >
+              <House size={14} /> <span>Trang chủ</span>
+            </button>
+            <ChevronRight size={13} color="#d1d5db" />
+            <span style={{ color: '#111827', fontSize: '13px', fontWeight: 600 }}>{pageInfo.title}</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{defaultUser.name}</p>
-              <p className="text-xs text-[#6B7280]">{defaultUser.department}</p>
+          {/* Right actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {/* Online status */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 10px', borderRadius: '20px', background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+              <Wifi size={12} color="#16a34a" />
+              <span style={{ fontSize: '11.5px', color: '#16a34a', fontWeight: 600 }}>API Online</span>
             </div>
-            <div className="w-10 h-10 bg-[#1976D2] rounded-full flex items-center justify-center cursor-pointer">
-              <User className="w-5 h-5 text-white" />
+
+            {/* User info */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>{getUserName()}</div>
+                <div style={{ fontSize: '10.5px', color: '#9ca3af' }}>AI Tim mạch · Phiên bản 1.0</div>
+              </div>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+                background: 'linear-gradient(135deg, #1677ff, #0958d9)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontSize: '12px', fontWeight: 700,
+                boxShadow: '0 2px 10px rgba(22,119,255,0.35)',
+                cursor: 'pointer',
+              }}>
+                {getUserInitials()}
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Error Banner removed per request */}
-
-        {/* Two-column layout */}
-        <div className="flex-1 overflow-auto bg-[#FAFBFC]">
-          <div className="p-8">
-            <div className="grid grid-cols-2 gap-8 max-w-[1280px] mx-auto">
-              {/* Left Column */}
-              <div className="space-y-6">
-                <PatientForm onPredict={handlePredict} isLoading={isLoading} />
-                {patientData && <PatientSummary data={patientData} />}
-                <RecentRecords />
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-6">
-                <RiskScoreCard score={riskScore} />
-                <ECGPreview />
-
-                {/* Charts Row */}
-                <div className="grid grid-cols-2 gap-4">
-                  <RiskTrendChart />
-                  <FeatureImportanceChart />
-                </div>
-              </div>
-            </div>
+        {/* MAIN CONTENT AREA */}
+        <div style={{ flex: 1, overflow: 'auto', background: 'linear-gradient(135deg, #f0f2f7 0%, #f5f0f0 100%)' }}>
+          <div key={activeNav} className="anim-page-enter">
+            {activeNav === 'dashboard' && <DashboardPage />}
+            {activeNav === 'patients' && <PatientsPage />}
+            {activeNav === 'reports' && <ReportsPage />}
+            {activeNav === 'analytics' && <AnalyticsPage />}
+            {activeNav === 'personalization' && <PersonalizationPage />}
           </div>
         </div>
       </div>

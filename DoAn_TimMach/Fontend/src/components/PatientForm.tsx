@@ -1,381 +1,330 @@
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Activity, Loader2 } from 'lucide-react';
+import { Activity, Heart, User, Stethoscope, FlaskConical, ChevronDown } from 'lucide-react';
 import type { PatientData } from '../services/api';
+import { createRipple } from '../hooks/useAnimations';
 
 interface PatientFormProps {
   onPredict: (data: PatientData) => void;
   isLoading?: boolean;
 }
 
+const glassCard: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.88)',
+  backdropFilter: 'blur(12px)',
+  borderRadius: '16px',
+  border: '1px solid rgba(255,255,255,0.95)',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
+  padding: '22px',
+};
+
+// Styled input
+function FancyInput({ id, type = 'text', value, onChange, placeholder, error, step }: {
+  id: string; type?: string; value: string; onChange: (v: string) => void;
+  placeholder?: string; error?: string; step?: string;
+}) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div>
+      <input
+        id={id}
+        type={type}
+        step={step}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          width: '100%', padding: '9px 12px', borderRadius: '10px', fontSize: '13.5px',
+          border: `1.5px solid ${error ? '#ef4444' : focused ? '#c62828' : '#e5e7eb'}`,
+          background: focused ? '#fff' : '#fafafa',
+          outline: 'none', color: '#111827',
+          boxShadow: focused ? '0 0 0 3px rgba(198,40,40,0.12)' : 'none',
+          transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
+          boxSizing: 'border-box',
+        }}
+      />
+      {error && <p style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px' }}>{error}</p>}
+    </div>
+  );
+}
+
+// Styled label
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#4b5563', marginBottom: '6px', letterSpacing: '0.2px' }}>{children}</label>;
+}
+
+// Section header
+function SectionHeader({ icon: Icon, title, color }: { icon: any; title: string; color: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', paddingBottom: '10px', borderBottom: `2px solid ${color}20` }}>
+      <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon size={14} color={color} />
+      </div>
+      <span style={{ fontSize: '13px', fontWeight: 700, color: '#374151' }}>{title}</span>
+      <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, ${color}30, transparent)` }} />
+    </div>
+  );
+}
+
+// Fancy Select wrapper
+function FancySelect({ id, value, onValueChange, placeholder, error, children }: {
+  id: string; value: string; onValueChange: (v: string) => void;
+  placeholder: string; error?: string; children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger
+          id={id}
+          style={{
+            width: '100%', padding: '9px 12px', borderRadius: '10px', fontSize: '13.5px',
+            border: `1.5px solid ${error ? '#ef4444' : '#e5e7eb'}`,
+            background: '#fafafa', outline: 'none', color: '#111827',
+            transition: 'all 0.2s ease', boxSizing: 'border-box', minHeight: '38px',
+          } as React.CSSProperties}
+        >
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>{children}</SelectContent>
+      </Select>
+      {error && <p style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px' }}>{error}</p>}
+    </div>
+  );
+}
+
 export function PatientForm({ onPredict, isLoading = false }: PatientFormProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    age: '',
-    sex: '',
-    cp: '',
-    trestbps: '',
-    chol: '',
-    fbs: '',
-    restecg: '',
-    thalach: '',
-    exang: '',
-    oldpeak: '',
-    slope: '',
-    ca: '',
-    thal: '',
+    name: '', age: '', sex: '', cp: '', trestbps: '', chol: '',
+    fbs: '', restecg: '', thalach: '', exang: '', oldpeak: '', slope: '', ca: '', thal: '',
   });
-
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.age || parseInt(formData.age) < 1 || parseInt(formData.age) > 120) {
-      newErrors.age = 'Tuổi phải từ 1-120';
-    }
-    if (!formData.sex) newErrors.sex = 'Vui lòng chọn giới tính';
-    if (!formData.cp) newErrors.cp = 'Vui lòng chọn loại đau ngực';
-    if (!formData.trestbps || parseFloat(formData.trestbps) < 50 || parseFloat(formData.trestbps) > 250) {
-      newErrors.trestbps = 'Huyết áp phải từ 50-250 mmHg';
-    }
-    if (!formData.chol || parseFloat(formData.chol) < 100 || parseFloat(formData.chol) > 600) {
-      newErrors.chol = 'Cholesterol phải từ 100-600 mg/dl';
-    }
-    if (!formData.fbs) newErrors.fbs = 'Vui lòng chọn mức đường huyết';
-    if (!formData.restecg) newErrors.restecg = 'Vui lòng chọn kết quả ECG';
-    if (!formData.thalach || parseFloat(formData.thalach) < 50 || parseFloat(formData.thalach) > 220) {
-      newErrors.thalach = 'Nhịp tim phải từ 50-220 bpm';
-    }
-    if (!formData.exang) newErrors.exang = 'Vui lòng chọn';
-    if (!formData.oldpeak || parseFloat(formData.oldpeak) < 0 || parseFloat(formData.oldpeak) > 10) {
-      newErrors.oldpeak = 'ST Depression phải từ 0-10';
-    }
-    if (!formData.slope) newErrors.slope = 'Vui lòng chọn slope';
-    if (!formData.ca) newErrors.ca = 'Vui lòng chọn số mạch máu';
-    if (!formData.thal) newErrors.thal = 'Vui lòng chọn Thalassemia';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const e: Record<string, string> = {};
+    if (!formData.age || +formData.age < 1 || +formData.age > 120) e.age = 'Tuổi phải từ 1–120';
+    if (!formData.sex) e.sex = 'Vui lòng chọn';
+    if (!formData.cp) e.cp = 'Vui lòng chọn';
+    if (!formData.trestbps || +formData.trestbps < 50 || +formData.trestbps > 250) e.trestbps = '50–250 mmHg';
+    if (!formData.chol || +formData.chol < 100 || +formData.chol > 600) e.chol = '100–600 mg/dl';
+    if (!formData.fbs) e.fbs = 'Vui lòng chọn';
+    if (!formData.restecg) e.restecg = 'Vui lòng chọn';
+    if (!formData.thalach || +formData.thalach < 50 || +formData.thalach > 220) e.thalach = '50–220 bpm';
+    if (!formData.exang) e.exang = 'Vui lòng chọn';
+    if (!formData.oldpeak || +formData.oldpeak < 0 || +formData.oldpeak > 10) e.oldpeak = '0–10';
+    if (!formData.slope) e.slope = 'Vui lòng chọn';
+    if (formData.ca === '') e.ca = 'Vui lòng chọn';
+    if (!formData.thal) e.thal = 'Vui lòng chọn';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    const patientData: PatientData = {
+    if (!validateForm()) return;
+    onPredict({
       name: formData.name || undefined,
-      age: parseInt(formData.age),
-      sex: parseInt(formData.sex),
-      cp: parseInt(formData.cp),
-      trestbps: parseFloat(formData.trestbps),
-      chol: parseFloat(formData.chol),
-      fbs: parseInt(formData.fbs),
-      restecg: parseInt(formData.restecg),
-      thalach: parseFloat(formData.thalach),
-      exang: parseInt(formData.exang),
-      oldpeak: parseFloat(formData.oldpeak),
-      slope: parseInt(formData.slope),
-      ca: parseInt(formData.ca),
-      thal: parseInt(formData.thal),
-    };
-
-    onPredict(patientData);
-  };
-
-  const updateField = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      age: '',
-      sex: '',
-      cp: '',
-      trestbps: '',
-      chol: '',
-      fbs: '',
-      restecg: '',
-      thalach: '',
-      exang: '',
-      oldpeak: '',
-      slope: '',
-      ca: '',
-      thal: '',
+      age: +formData.age, sex: +formData.sex, cp: +formData.cp,
+      trestbps: +formData.trestbps, chol: +formData.chol,
+      fbs: +formData.fbs, restecg: +formData.restecg,
+      thalach: +formData.thalach, exang: +formData.exang,
+      oldpeak: +formData.oldpeak, slope: +formData.slope,
+      ca: +formData.ca, thal: +formData.thal,
     });
+  };
+
+  const set = (field: string, v: string) => {
+    setFormData(p => ({ ...p, [field]: v }));
+    if (errors[field]) setErrors(p => ({ ...p, [field]: '' }));
+  };
+
+  const reset = () => {
+    setFormData({ name: '', age: '', sex: '', cp: '', trestbps: '', chol: '', fbs: '', restecg: '', thalach: '', exang: '', oldpeak: '', slope: '', ca: '', thal: '' });
     setErrors({});
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-8 h-8 bg-[#EF9A9A] rounded-lg flex items-center justify-center">
-          <Activity className="w-5 h-5 text-[#C62828]" />
+    <div style={glassCard}>
+      {/* Card header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #fff1f2, #ffe4e6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Activity size={18} color="#e11d48" />
         </div>
-        <h2 className="text-lg font-medium text-gray-900">Thông tin bệnh nhân</h2>
+        <div>
+          <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#111827', margin: 0 }}>Thông tin bệnh nhân</h2>
+          <p style={{ fontSize: '11.5px', color: '#9ca3af', margin: '1px 0 0' }}>Điền đầy đủ 13 chỉ số lâm sàng để dự đoán</p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Họ tên */}
-        <div className="space-y-2">
-          <Label htmlFor="name">Họ và tên (không bắt buộc)</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => updateField('name', e.target.value)}
-            placeholder="Nhập họ và tên bệnh nhân"
-            className="bg-[#FAFBFC] border-[#E5E7EB]"
-          />
-        </div>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
-        {/* Age and Gender Row */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="age">Tuổi (năm) *</Label>
-            <Input
-              id="age"
-              type="number"
-              value={formData.age}
-              onChange={(e) => updateField('age', e.target.value)}
-              placeholder="45"
-              className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.age ? 'border-red-500' : ''}`}
-            />
-            {errors.age && <p className="text-xs text-red-500">{errors.age}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="sex">Giới tính *</Label>
-            <Select value={formData.sex} onValueChange={(value) => updateField('sex', value)}>
-              <SelectTrigger className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.sex ? 'border-red-500' : ''}`}>
-                <SelectValue placeholder="Chọn" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">Nữ</SelectItem>
-                <SelectItem value="1">Nam</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.sex && <p className="text-xs text-red-500">{errors.sex}</p>}
+        {/* ── SECTION 1: Cơ bản ── */}
+        <div>
+          <SectionHeader icon={User} title="Thông tin cơ bản" color="#1677ff" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* Name */}
+            <div>
+              <FieldLabel>Họ và tên (không bắt buộc)</FieldLabel>
+              <FancyInput id="name" value={formData.name} onChange={v => set('name', v)} placeholder="Nhập họ và tên bệnh nhân" />
+            </div>
+            {/* Age + Gender */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <FieldLabel>Tuổi (năm) *</FieldLabel>
+                <FancyInput id="age" type="number" value={formData.age} onChange={v => set('age', v)} placeholder="45" error={errors.age} />
+              </div>
+              <div>
+                <FieldLabel>Giới tính *</FieldLabel>
+                <FancySelect id="sex" value={formData.sex} onValueChange={v => set('sex', v)} placeholder="Chọn" error={errors.sex}>
+                  <SelectItem value="0">Nữ</SelectItem>
+                  <SelectItem value="1">Nam</SelectItem>
+                </FancySelect>
+              </div>
+            </div>
+            {/* Chest pain */}
+            <div>
+              <FieldLabel>Loại đau ngực *</FieldLabel>
+              <FancySelect id="cp" value={formData.cp} onValueChange={v => set('cp', v)} placeholder="Chọn loại đau ngực" error={errors.cp}>
+                <SelectItem value="0">Đau thắt ngực điển hình</SelectItem>
+                <SelectItem value="1">Đau thắt ngực không điển hình</SelectItem>
+                <SelectItem value="2">Đau không do tim</SelectItem>
+                <SelectItem value="3">Không triệu chứng</SelectItem>
+              </FancySelect>
+            </div>
           </div>
         </div>
 
-        {/* Chest Pain Type */}
-        <div className="space-y-2">
-          <Label htmlFor="cp">Loại đau ngực *</Label>
-          <Select value={formData.cp} onValueChange={(value) => updateField('cp', value)}>
-            <SelectTrigger className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.cp ? 'border-red-500' : ''}`}>
-              <SelectValue placeholder="Chọn loại đau ngực" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">Đau thắt ngực điển hình</SelectItem>
-              <SelectItem value="1">Đau thắt ngực không điển hình</SelectItem>
-              <SelectItem value="2">Đau không do tim</SelectItem>
-              <SelectItem value="3">Không triệu chứng</SelectItem>
-            </SelectContent>
-          </Select>
-          {errors.cp && <p className="text-xs text-red-500">{errors.cp}</p>}
-        </div>
-
-        {/* Blood Pressure and Cholesterol */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="trestbps">Huyết áp nghỉ (mmHg) *</Label>
-            <Input
-              id="trestbps"
-              type="number"
-              value={formData.trestbps}
-              onChange={(e) => updateField('trestbps', e.target.value)}
-              placeholder="120"
-              className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.trestbps ? 'border-red-500' : ''}`}
-            />
-            {errors.trestbps && <p className="text-xs text-red-500">{errors.trestbps}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="chol">Cholesterol (mg/dl) *</Label>
-            <Input
-              id="chol"
-              type="number"
-              value={formData.chol}
-              onChange={(e) => updateField('chol', e.target.value)}
-              placeholder="200"
-              className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.chol ? 'border-red-500' : ''}`}
-            />
-            {errors.chol && <p className="text-xs text-red-500">{errors.chol}</p>}
+        {/* ── SECTION 2: Chỉ số lâm sàng ── */}
+        <div>
+          <SectionHeader icon={Stethoscope} title="Chỉ số lâm sàng" color="#c62828" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <FieldLabel>Huyết áp nghỉ (mmHg) *</FieldLabel>
+                <FancyInput id="trestbps" type="number" value={formData.trestbps} onChange={v => set('trestbps', v)} placeholder="120" error={errors.trestbps} />
+              </div>
+              <div>
+                <FieldLabel>Cholesterol (mg/dl) *</FieldLabel>
+                <FancyInput id="chol" type="number" value={formData.chol} onChange={v => set('chol', v)} placeholder="200" error={errors.chol} />
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <FieldLabel>Nhịp tim tối đa (bpm) *</FieldLabel>
+                <FancyInput id="thalach" type="number" value={formData.thalach} onChange={v => set('thalach', v)} placeholder="150" error={errors.thalach} />
+              </div>
+              <div>
+                <FieldLabel>ST Depression *</FieldLabel>
+                <FancyInput id="oldpeak" type="number" step="0.1" value={formData.oldpeak} onChange={v => set('oldpeak', v)} placeholder="1.0" error={errors.oldpeak} />
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <FieldLabel>Đường huyết lúc đói *</FieldLabel>
+                <FancySelect id="fbs" value={formData.fbs} onValueChange={v => set('fbs', v)} placeholder="Chọn" error={errors.fbs}>
+                  <SelectItem value="0">≤ 120 mg/dl (Bình thường)</SelectItem>
+                  <SelectItem value="1">&gt; 120 mg/dl (Cao)</SelectItem>
+                </FancySelect>
+              </div>
+              <div>
+                <FieldLabel>Đau ngực khi tập *</FieldLabel>
+                <FancySelect id="exang" value={formData.exang} onValueChange={v => set('exang', v)} placeholder="Chọn" error={errors.exang}>
+                  <SelectItem value="0">Không</SelectItem>
+                  <SelectItem value="1">Có</SelectItem>
+                </FancySelect>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Fasting Blood Sugar and Resting ECG */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="fbs">Đường huyết lúc đói *</Label>
-            <Select value={formData.fbs} onValueChange={(value) => updateField('fbs', value)}>
-              <SelectTrigger className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.fbs ? 'border-red-500' : ''}`}>
-                <SelectValue placeholder="Chọn" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">≤ 120 mg/dl (Bình thường)</SelectItem>
-                <SelectItem value="1">&gt; 120 mg/dl (Cao)</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.fbs && <p className="text-xs text-red-500">{errors.fbs}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="restecg">Kết quả ECG nghỉ *</Label>
-            <Select value={formData.restecg} onValueChange={(value) => updateField('restecg', value)}>
-              <SelectTrigger className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.restecg ? 'border-red-500' : ''}`}>
-                <SelectValue placeholder="Chọn" />
-              </SelectTrigger>
-              <SelectContent>
+        {/* ── SECTION 3: Xét nghiệm ── */}
+        <div>
+          <SectionHeader icon={FlaskConical} title="Kết quả xét nghiệm" color="#a855f7" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div>
+              <FieldLabel>Kết quả ECG nghỉ *</FieldLabel>
+              <FancySelect id="restecg" value={formData.restecg} onValueChange={v => set('restecg', v)} placeholder="Chọn" error={errors.restecg}>
                 <SelectItem value="0">Bình thường</SelectItem>
                 <SelectItem value="1">Bất thường sóng ST-T</SelectItem>
                 <SelectItem value="2">Phì đại thất trái (LVH)</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.restecg && <p className="text-xs text-red-500">{errors.restecg}</p>}
-          </div>
-        </div>
-
-        {/* Max Heart Rate and Exercise Angina */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="thalach">Nhịp tim tối đa (bpm) *</Label>
-            <Input
-              id="thalach"
-              type="number"
-              value={formData.thalach}
-              onChange={(e) => updateField('thalach', e.target.value)}
-              placeholder="150"
-              className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.thalach ? 'border-red-500' : ''}`}
-            />
-            {errors.thalach && <p className="text-xs text-red-500">{errors.thalach}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="exang">Đau thắt ngực khi tập *</Label>
-            <Select value={formData.exang} onValueChange={(value) => updateField('exang', value)}>
-              <SelectTrigger className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.exang ? 'border-red-500' : ''}`}>
-                <SelectValue placeholder="Chọn" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">Không</SelectItem>
-                <SelectItem value="1">Có</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.exang && <p className="text-xs text-red-500">{errors.exang}</p>}
-          </div>
-        </div>
-
-        {/* ST Depression and Slope */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="oldpeak">ST Depression *</Label>
-            <Input
-              id="oldpeak"
-              type="number"
-              step="0.1"
-              value={formData.oldpeak}
-              onChange={(e) => updateField('oldpeak', e.target.value)}
-              placeholder="1.0"
-              className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.oldpeak ? 'border-red-500' : ''}`}
-            />
-            {errors.oldpeak && <p className="text-xs text-red-500">{errors.oldpeak}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="slope">Độ dốc ST (Slope) *</Label>
-            <Select value={formData.slope} onValueChange={(value) => updateField('slope', value)}>
-              <SelectTrigger className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.slope ? 'border-red-500' : ''}`}>
-                <SelectValue placeholder="Chọn" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">Dốc lên (Upsloping)</SelectItem>
-                <SelectItem value="1">Bằng phẳng (Flat)</SelectItem>
-                <SelectItem value="2">Dốc xuống (Downsloping)</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.slope && <p className="text-xs text-red-500">{errors.slope}</p>}
-          </div>
-        </div>
-
-        {/* CA and Thal */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="ca">Số mạch máu chính *</Label>
-            <Select value={formData.ca} onValueChange={(value) => updateField('ca', value)}>
-              <SelectTrigger className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.ca ? 'border-red-500' : ''}`}>
-                <SelectValue placeholder="Chọn" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">0 mạch</SelectItem>
-                <SelectItem value="1">1 mạch</SelectItem>
-                <SelectItem value="2">2 mạch</SelectItem>
-                <SelectItem value="3">3 mạch</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.ca && <p className="text-xs text-red-500">{errors.ca}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="thal">Thalassemia *</Label>
-            <Select value={formData.thal} onValueChange={(value) => updateField('thal', value)}>
-              <SelectTrigger className={`bg-[#FAFBFC] border-[#E5E7EB] ${errors.thal ? 'border-red-500' : ''}`}>
-                <SelectValue placeholder="Chọn" />
-              </SelectTrigger>
-              <SelectContent>
+              </FancySelect>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <FieldLabel>Độ dốc ST (Slope) *</FieldLabel>
+                <FancySelect id="slope" value={formData.slope} onValueChange={v => set('slope', v)} placeholder="Chọn" error={errors.slope}>
+                  <SelectItem value="0">Dốc lên</SelectItem>
+                  <SelectItem value="1">Bằng phẳng</SelectItem>
+                  <SelectItem value="2">Dốc xuống</SelectItem>
+                </FancySelect>
+              </div>
+              <div>
+                <FieldLabel>Số mạch máu chính *</FieldLabel>
+                <FancySelect id="ca" value={formData.ca} onValueChange={v => set('ca', v)} placeholder="Chọn" error={errors.ca}>
+                  <SelectItem value="0">0 mạch</SelectItem>
+                  <SelectItem value="1">1 mạch</SelectItem>
+                  <SelectItem value="2">2 mạch</SelectItem>
+                  <SelectItem value="3">3 mạch</SelectItem>
+                </FancySelect>
+              </div>
+            </div>
+            <div>
+              <FieldLabel>Thalassemia *</FieldLabel>
+              <FancySelect id="thal" value={formData.thal} onValueChange={v => set('thal', v)} placeholder="Chọn" error={errors.thal}>
                 <SelectItem value="0">Bình thường</SelectItem>
                 <SelectItem value="1">Khiếm khuyết cố định</SelectItem>
                 <SelectItem value="2">Khiếm khuyết có hồi phục</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.thal && <p className="text-xs text-red-500">{errors.thal}</p>}
+              </FancySelect>
+            </div>
           </div>
         </div>
 
-        {/* Submit Button */}
-        <div className="flex gap-3 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={resetForm}
-            className="flex-1"
-            disabled={isLoading}
+        {/* ── Buttons ── */}
+        <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>
+          <button
+            type="button" onClick={reset} disabled={isLoading}
+            style={{
+              flex: '0 0 auto', padding: '10px 18px', borderRadius: '10px',
+              border: '1.5px solid #e5e7eb', background: 'transparent',
+              color: '#6b7280', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f9fafb'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#d1d5db'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e7eb'; }}
           >
             Xóa form
-          </Button>
-          <Button
-            type="submit"
-            className="flex-1 bg-[#C62828] hover:bg-[#B71C1C] text-white"
-            disabled={isLoading}
+          </button>
+          <button
+            type="submit" disabled={isLoading}
+            onClick={(e) => { if (!isLoading) createRipple(e as any); }}
+            style={{
+              flex: 1, padding: '10px 18px', borderRadius: '10px', border: 'none',
+              background: isLoading ? '#e5e7eb' : 'linear-gradient(135deg, #c62828 0%, #ad1457 100%)',
+              color: isLoading ? '#9ca3af' : 'white', fontSize: '13.5px', fontWeight: 700,
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              boxShadow: isLoading ? 'none' : '0 4px 16px rgba(198,40,40,0.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              transition: 'all 0.22s cubic-bezier(.4,0,.2,1)',
+              position: 'relative', overflow: 'hidden',
+            }}
+            onMouseEnter={e => { if (!isLoading) { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 24px rgba(198,40,40,0.45)'; } }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = isLoading ? 'none' : '0 4px 16px rgba(198,40,40,0.35)'; }}
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Đang xử lý...
+                <Heart size={15} fill="currentColor" style={{ animation: 'heartbeat 0.8s ease-in-out infinite' }} />
+                AI đang phân tích...
               </>
             ) : (
               <>
-                <Activity className="w-4 h-4 mr-2" />
+                <Activity size={15} />
                 Dự đoán nguy cơ
               </>
             )}
-          </Button>
+          </button>
         </div>
-
-        <p className="text-xs text-center text-[#6B7280]">
-          * Các trường bắt buộc phải nhập
-        </p>
+        <p style={{ textAlign: 'center', fontSize: '11px', color: '#9ca3af', margin: 0 }}>* Các trường có dấu sao là bắt buộc</p>
       </form>
     </div>
   );
