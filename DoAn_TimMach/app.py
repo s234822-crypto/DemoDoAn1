@@ -1,7 +1,7 @@
 """Ứng dụng Flask dự đoán bệnh tim, sẵn sàng deploy trên Render."""
 
 import os
-from typing import Dict, Any, Tuple
+from typing import Dict, Any
 
 import joblib
 import numpy as np
@@ -18,14 +18,31 @@ CONTINUOUS_INDICES = [0, 3, 4, 7, 9]
 
 def load_model_bundle() -> Dict[str, Any]:
     """Load model từ model.pkl hoặc fallback sang models/heart_model.pkl."""
-    base_dir = os.path.dirname(__file__)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    env_model_path = os.environ.get('MODEL_PATH', '').strip()
+
     candidate_paths = [
-        os.path.join(base_dir, 'model.pkl'),
-        os.path.join(base_dir, 'models', 'heart_model.pkl'),
+        env_model_path,
+        os.path.abspath(os.path.join(base_dir, 'model.pkl')),
+        os.path.abspath(os.path.join(base_dir, 'models', 'heart_model.pkl')),
+        os.path.abspath(os.path.join(base_dir, '..', 'DoAn_TimMach', 'model.pkl')),
+        os.path.abspath(os.path.join(base_dir, '..', 'DoAn_TimMach', 'models', 'heart_model.pkl')),
     ]
 
+    # Giữ thứ tự ưu tiên, đồng thời loại path trống/trùng.
+    dedup_paths = []
+    seen = set()
+    for p in candidate_paths:
+        if not p:
+            continue
+        ap = os.path.abspath(p)
+        if ap in seen:
+            continue
+        seen.add(ap)
+        dedup_paths.append(ap)
+
     last_error = None
-    for model_path in candidate_paths:
+    for model_path in dedup_paths:
         if not os.path.exists(model_path):
             continue
         try:
@@ -48,7 +65,11 @@ def load_model_bundle() -> Dict[str, Any]:
         except Exception as exc:
             last_error = exc
 
-    raise RuntimeError(f'Không thể load model (.pkl). Chi tiết: {last_error}')
+    raise RuntimeError(
+        'Không thể load model (.pkl). '
+        f'Checked paths: {dedup_paths}. '
+        f'Chi tiết: {last_error}'
+    )
 
 
 MODEL_BUNDLE = load_model_bundle()
