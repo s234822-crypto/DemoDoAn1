@@ -561,7 +561,7 @@ def main() -> None:
     print("\n[9] Summary")
     print(f"Selected best base model : {best_name}")
     print(f"Final calibrated accuracy: {final_metrics['accuracy']:.4f}")
-    print("Model is ready for Python/Tkinter/API integration via predict_heart_risk(data).")
+    print("Model is ready for Flask/API integration via predict_heart_risk(data).")
 
     # Optional guidance if target accuracy band is not met
     acc_pct = final_metrics["accuracy"] * 100

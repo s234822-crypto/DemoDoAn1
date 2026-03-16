@@ -1,290 +1,160 @@
-"""
-CardioPredict AI - Hệ thống dự đoán bệnh tim nâng cấp
-"""
+"""Ứng dụng Flask dự đoán bệnh tim, sẵn sàng deploy trên Render."""
+
+import os
+from typing import Dict, Any, Tuple
 
 import joblib
-import pandas as pd
-import tkinter as tk
-from tkinter import ttk, messagebox
-import os
+import numpy as np
+from flask import Flask, jsonify, render_template, request
 
-# =========================
-# Load Model và Scaler
-# =========================
+app = Flask(__name__)
 
-def load_model():
-    try:
-        model_path = os.path.join(os.path.dirname(__file__), 'models', 'heart_model.pkl')
-        return joblib.load(model_path)
-    except:
-        messagebox.showerror("Lỗi", "Không tìm thấy model!")
-        return None
-
-def load_scaler():
-    try:
-        scaler_path = os.path.join(os.path.dirname(__file__), 'models', 'scaler.pkl')
-        return joblib.load(scaler_path)
-    except:
-        return None
+FEATURES = [
+    'age', 'sex', 'cp', 'trestbps', 'chol', 'fbs',
+    'restecg', 'thalach', 'exang', 'oldpeak', 'slope', 'ca', 'thal'
+]
+CONTINUOUS_INDICES = [0, 3, 4, 7, 9]
 
 
-# =========================
-# AI Giải thích nguy cơ
-# =========================
+def load_model_bundle() -> Dict[str, Any]:
+    """Load model từ model.pkl hoặc fallback sang models/heart_model.pkl."""
+    base_dir = os.path.dirname(__file__)
+    candidate_paths = [
+        os.path.join(base_dir, 'model.pkl'),
+        os.path.join(base_dir, 'models', 'heart_model.pkl'),
+    ]
 
-def explain_risk(data):
+    last_error = None
+    for model_path in candidate_paths:
+        if not os.path.exists(model_path):
+            continue
+        try:
+            loaded = joblib.load(model_path)
+            if isinstance(loaded, dict) and 'model' in loaded:
+                return {
+                    'model': loaded['model'],
+                    'scaler': loaded.get('scaler'),
+                    'features': loaded.get('feature_names', FEATURES),
+                    'cont_idx': loaded.get('cont_idx', CONTINUOUS_INDICES),
+                    'path': model_path,
+                }
+            return {
+                'model': loaded,
+                'scaler': None,
+                'features': FEATURES,
+                'cont_idx': CONTINUOUS_INDICES,
+                'path': model_path,
+            }
+        except Exception as exc:
+            last_error = exc
 
-    reasons = []
-
-    if data["age"] > 55:
-        reasons.append("Tuổi cao làm tăng nguy cơ bệnh tim")
-
-    if data["chol"] > 240:
-        reasons.append("Cholesterol cao")
-
-    if data["trestbps"] > 140:
-        reasons.append("Huyết áp cao")
-
-    if data["thalach"] < 120:
-        reasons.append("Nhịp tim tối đa thấp")
-
-    if data["oldpeak"] > 2:
-        reasons.append("ST Depression cao")
-
-    if data["ca"] > 1:
-        reasons.append("Có nhiều mạch máu bị tắc")
-
-    if len(reasons) == 0:
-        return "Không phát hiện yếu tố nguy cơ lớn"
-
-    return "\n".join(reasons)
+    raise RuntimeError(f'Không thể load model (.pkl). Chi tiết: {last_error}')
 
 
-# =========================
-# Phân loại Risk Level
-# =========================
+MODEL_BUNDLE = load_model_bundle()
 
-def risk_level(prob):
 
-    if prob < 0.25:
-        return "Nguy cơ THẤP", "green"
+def _parse_payload(payload: Dict[str, Any]) -> Dict[str, float]:
+    """Parse và validate dữ liệu đầu vào từ form/json."""
+    missing = [f for f in FEATURES if payload.get(f, '') in (None, '')]
+    if missing:
+        raise ValueError(f'Thiếu dữ liệu: {", ".join(missing)}')
 
-    elif prob < 0.50:
-        return "Nguy cơ TRUNG BÌNH", "orange"
+    data = {
+        'age': float(payload['age']),
+        'sex': int(payload['sex']),
+        'cp': int(payload['cp']),
+        'trestbps': float(payload['trestbps']),
+        'chol': float(payload['chol']),
+        'fbs': int(payload['fbs']),
+        'restecg': int(payload['restecg']),
+        'thalach': float(payload['thalach']),
+        'exang': int(payload['exang']),
+        'oldpeak': float(payload['oldpeak']),
+        'slope': int(payload['slope']),
+        'ca': int(payload['ca']),
+        'thal': int(payload['thal']),
+    }
+    return data
 
-    elif prob < 0.75:
-        return "Nguy cơ CAO", "red"
 
+def _predict_heart_risk(data: Dict[str, float]) -> Dict[str, Any]:
+    """Thực hiện suy luận từ model/scaler đã load."""
+    features = MODEL_BUNDLE['features']
+    cont_idx = MODEL_BUNDLE['cont_idx']
+    scaler = MODEL_BUNDLE['scaler']
+    model = MODEL_BUNDLE['model']
+
+    X = np.array([[data[f] for f in features]], dtype=float)
+    if scaler is not None:
+        X[:, cont_idx] = scaler.transform(X[:, cont_idx])
+
+    pred_class = int(model.predict(X)[0])
+    if hasattr(model, 'predict_proba'):
+        risk_score = float(model.predict_proba(X)[0][1] * 100)
     else:
-        return "Nguy cơ RẤT CAO", "darkred"
+        risk_score = 90.0 if pred_class == 1 else 10.0
+
+    if risk_score < 25:
+        risk_level = 'Thấp'
+    elif risk_score < 50:
+        risk_level = 'Trung bình'
+    elif risk_score < 75:
+        risk_level = 'Cao'
+    else:
+        risk_level = 'Rất cao'
+
+    return {
+        'prediction': pred_class,
+        'risk_score': round(risk_score, 2),
+        'risk_level': risk_level,
+        'message': 'Có nguy cơ bệnh tim' if pred_class == 1 else 'Nguy cơ thấp / chưa phát hiện bệnh tim',
+    }
 
 
-# =========================
-# Hàm dự đoán
-# =========================
+def _as_json_request() -> bool:
+    if request.is_json:
+        return True
+    accept = request.headers.get('Accept', '')
+    return 'application/json' in accept
 
+
+@app.route('/', methods=['GET'])
+def index():
+    """Trang form nhập dữ liệu dự đoán."""
+    return render_template('index.html', result=None, error=None, form_data={})
+
+
+@app.route('/predict', methods=['POST'])
 def predict():
-
+    """Endpoint nhận dữ liệu từ form HTML hoặc JSON rồi trả kết quả dự đoán."""
     try:
+        payload = request.get_json(silent=True) if request.is_json else request.form
+        payload = payload or {}
+        input_data = _parse_payload(payload)
+        result = _predict_heart_risk(input_data)
 
-        data = {
-            'age': float(entry_age.get()),
-            'sex': combo_sex.current(),
-            'cp': combo_cp.current(),
-            'trestbps': float(entry_trestbps.get()),
-            'chol': float(entry_chol.get()),
-            'fbs': combo_fbs.current(),
-            'restecg': combo_restecg.current(),
-            'thalach': float(entry_thalach.get()),
-            'exang': combo_exang.current(),
-            'oldpeak': float(entry_oldpeak.get()),
-            'slope': combo_slope.current(),
-            'ca': combo_ca.current(),
-            'thal': combo_thal.current() + 1
-        }
+        if _as_json_request():
+            return jsonify(result)
 
-        columns = [
-            'age','sex','cp','trestbps','chol','fbs','restecg',
-            'thalach','exang','oldpeak','slope','ca','thal'
-        ]
+        return render_template('index.html', result=result, error=None, form_data=input_data)
+    except Exception as exc:
+        if _as_json_request():
+            return jsonify({'error': str(exc)}), 400
 
-        input_df = pd.DataFrame([data])[columns]
-
-        model = load_model()
-        scaler = load_scaler()
-
-        if model is None:
-            return
-
-        if scaler:
-            input_df = scaler.transform(input_df)
-
-        prediction = model.predict(input_df)[0]
-        probability = model.predict_proba(input_df)[0][1]
-
-        level, color = risk_level(probability)
-
-        explanation = explain_risk(data)
-
-        result_text = f"""
-Xác suất mắc bệnh tim: {probability*100:.1f}%
-
-Mức độ nguy cơ: {level}
-
-Phân tích AI:
-{explanation}
-"""
-
-        label_result.config(text=result_text, foreground=color)
-
-    except ValueError:
-        messagebox.showerror("Lỗi", "Vui lòng nhập đầy đủ thông tin!")
+        return render_template('index.html', result=None, error=str(exc), form_data=request.form)
 
 
-# =========================
-# Clear Form
-# =========================
-
-def clear_form():
-
-    entry_age.delete(0, tk.END)
-    entry_trestbps.delete(0, tk.END)
-    entry_chol.delete(0, tk.END)
-    entry_thalach.delete(0, tk.END)
-    entry_oldpeak.delete(0, tk.END)
-
-    combo_sex.current(0)
-    combo_cp.current(0)
-    combo_fbs.current(0)
-    combo_restecg.current(0)
-    combo_exang.current(0)
-    combo_slope.current(0)
-    combo_ca.current(0)
-    combo_thal.current(0)
-
-    label_result.config(text="")
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check đơn giản cho môi trường deploy."""
+    return jsonify({
+        'status': 'ok',
+        'model_loaded': MODEL_BUNDLE.get('model') is not None,
+        'model_path': MODEL_BUNDLE.get('path')
+    })
 
 
-# =========================
-# UI
-# =========================
-
-root = tk.Tk()
-root.title("CardioPredict AI")
-root.geometry("620x720")
-root.resizable(False, False)
-
-style = ttk.Style()
-style.configure("Header.TLabel", font=("Segoe UI", 18, "bold"))
-
-header = ttk.Label(root, text="🫀 CardioPredict AI", style="Header.TLabel")
-header.pack(pady=15)
-
-main = ttk.Frame(root, padding=20)
-main.pack()
-
-# Tuổi
-ttk.Label(main, text="Tuổi").grid(row=0,column=0)
-entry_age = ttk.Entry(main)
-entry_age.grid(row=0,column=1)
-
-# Giới tính
-ttk.Label(main, text="Giới tính").grid(row=0,column=2)
-combo_sex = ttk.Combobox(main, values=["Nữ","Nam"], state="readonly")
-combo_sex.grid(row=0,column=3)
-combo_sex.current(0)
-
-# Chest pain
-ttk.Label(main,text="Loại đau ngực").grid(row=1,column=0)
-combo_cp = ttk.Combobox(main,values=[
-"Điển hình",
-"Không điển hình",
-"Đau không do tim",
-"Không triệu chứng"
-],state="readonly")
-combo_cp.grid(row=1,column=1)
-combo_cp.current(0)
-
-# Huyết áp
-ttk.Label(main,text="Huyết áp").grid(row=2,column=0)
-entry_trestbps = ttk.Entry(main)
-entry_trestbps.grid(row=2,column=1)
-
-# Cholesterol
-ttk.Label(main,text="Cholesterol").grid(row=2,column=2)
-entry_chol = ttk.Entry(main)
-entry_chol.grid(row=2,column=3)
-
-# Đường huyết
-ttk.Label(main,text="Đường huyết >120").grid(row=3,column=0)
-combo_fbs = ttk.Combobox(main,values=["Không","Có"],state="readonly")
-combo_fbs.grid(row=3,column=1)
-combo_fbs.current(0)
-
-# ECG
-ttk.Label(main,text="ECG").grid(row=3,column=2)
-combo_restecg = ttk.Combobox(main,values=[
-"Bình thường",
-"Bất thường ST",
-"Phì đại thất"
-],state="readonly")
-combo_restecg.grid(row=3,column=3)
-combo_restecg.current(0)
-
-# Nhịp tim
-ttk.Label(main,text="Nhịp tim tối đa").grid(row=4,column=0)
-entry_thalach = ttk.Entry(main)
-entry_thalach.grid(row=4,column=1)
-
-# Đau khi tập
-ttk.Label(main,text="Đau khi tập").grid(row=4,column=2)
-combo_exang = ttk.Combobox(main,values=["Không","Có"],state="readonly")
-combo_exang.grid(row=4,column=3)
-combo_exang.current(0)
-
-# ST depression
-ttk.Label(main,text="ST Depression").grid(row=5,column=0)
-entry_oldpeak = ttk.Entry(main)
-entry_oldpeak.grid(row=5,column=1)
-
-# slope
-ttk.Label(main,text="Slope").grid(row=5,column=2)
-combo_slope = ttk.Combobox(main,values=[
-"Dốc lên",
-"Phẳng",
-"Dốc xuống"
-],state="readonly")
-combo_slope.grid(row=5,column=3)
-combo_slope.current(0)
-
-# ca
-ttk.Label(main,text="Số mạch máu").grid(row=6,column=0)
-combo_ca = ttk.Combobox(main,values=["0","1","2","3"],state="readonly")
-combo_ca.grid(row=6,column=1)
-combo_ca.current(0)
-
-# thal
-ttk.Label(main,text="Thalassemia").grid(row=6,column=2)
-combo_thal = ttk.Combobox(main,values=[
-"Bình thường",
-"Khiếm khuyết cố định",
-"Khiếm khuyết đảo ngược"
-],state="readonly")
-combo_thal.grid(row=6,column=3)
-combo_thal.current(0)
-
-# Buttons
-btn_frame = ttk.Frame(root)
-btn_frame.pack(pady=20)
-
-ttk.Button(btn_frame,text="🔍 Dự đoán",command=predict).pack(side="left",padx=10)
-ttk.Button(btn_frame,text="🗑️ Xóa",command=clear_form).pack(side="left",padx=10)
-
-# Result
-result_frame = ttk.LabelFrame(root,text="Kết quả AI",padding=20)
-result_frame.pack(fill="x",padx=20,pady=10)
-
-label_result = ttk.Label(result_frame,text="",font=("Segoe UI",12))
-label_result.pack()
-
-root.mainloop()
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', '5000'))
+    app.run(host='0.0.0.0', port=port, debug=False)
