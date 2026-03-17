@@ -190,8 +190,8 @@ bundle = load_model()
 # Keep backward-compat alias
 model = bundle['model'] if bundle else None
 
-BASE_DIR = os.path.dirname(__file__)
-FRONTEND_BUILD_DIR = os.path.join(BASE_DIR, 'Fontend', 'build')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_BUILD_DIR = os.path.join(BASE_DIR, '..', 'Fontend', 'build')
 FRONTEND_INDEX_FILE = os.path.join(FRONTEND_BUILD_DIR, 'index.html')
 
 
