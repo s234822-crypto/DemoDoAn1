@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CardioPredict AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <main class="container">
+        <h1>CardioPredict AI</h1>
+        <p class="subtitle">Dự đoán nguy cơ bệnh tim từ chỉ số sức khỏe</p>
+
+        {% if error %}
+        <div class="alert error">{{ error }}</div>
+        {% endif %}
+
+        {% if result %}
+        <div class="alert success">
+            <strong>Kết quả:</strong> {{ result.message }}<br>
+            <strong>Risk score:</strong> {{ result.risk_score }}%<br>
+            <strong>Mức độ:</strong> {{ result.risk_level }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="/predict" class="grid">
+            <label>Tuổi
+                <input type="number" name="age" required value="{{ form_data.get('age', '') }}">
+            </label>
+
+            <label>Giới tính (0=Nữ, 1=Nam)
+                <select name="sex" required>
+                    <option value="0" {% if form_data.get('sex', '' )|string=='0' %}selected{% endif %}>Nữ (0)</option>
+                    <option value="1" {% if form_data.get('sex', '' )|string=='1' %}selected{% endif %}>Nam (1)</option>
+                </select>
+            </label>
+
+            <label>CP (0-3)
+                <input type="number" min="0" max="3" name="cp" required value="{{ form_data.get('cp', '') }}">
+            </label>
+
+            <label>Huyết áp nghỉ (trestbps)
+                <input type="number" name="trestbps" required value="{{ form_data.get('trestbps', '') }}">
+            </label>
+
+            <label>Cholesterol (chol)
+                <input type="number" name="chol" required value="{{ form_data.get('chol', '') }}">
+            </label>
+
+            <label>FBS (0/1)
+                <select name="fbs" required>
+                    <option value="0" {% if form_data.get('fbs', '' )|string=='0' %}selected{% endif %}>Không (0)
+                    </option>
+                    <option value="1" {% if form_data.get('fbs', '' )|string=='1' %}selected{% endif %}>Có (1)</option>
+                </select>
+            </label>
+
+            <label>RESTECG (0-2)
+                <input type="number" min="0" max="2" name="restecg" required value="{{ form_data.get('restecg', '') }}">
+            </label>
+
+            <label>Nhịp tim tối đa (thalach)
+                <input type="number" name="thalach" required value="{{ form_data.get('thalach', '') }}">
+            </label>
+
+            <label>EXANG (0/1)
+                <select name="exang" required>
+                    <option value="0" {% if form_data.get('exang', '' )|string=='0' %}selected{% endif %}>Không (0)
+                    </option>
+                    <option value="1" {% if form_data.get('exang', '' )|string=='1' %}selected{% endif %}>Có (1)
+                    </option>
+                </select>
+            </label>
+
+            <label>ST Depression (oldpeak)
+                <input type="number" step="0.1" name="oldpeak" required value="{{ form_data.get('oldpeak', '') }}">
+            </label>
+
+            <label>Slope (0-2)
+                <input type="number" min="0" max="2" name="slope" required value="{{ form_data.get('slope', '') }}">
+            </label>
+
+            <label>Số mạch máu (ca)
+                <input type="number" min="0" max="3" name="ca" required value="{{ form_data.get('ca', '') }}">
+            </label>
+
+            <label>Thal (0-3)
+                <input type="number" min="0" max="3" name="thal" required value="{{ form_data.get('thal', '') }}">
+            </label>
+
+            <button type="submit">Dự đoán</button>
+        </form>
+    </main>
+</body>
+
+</html>

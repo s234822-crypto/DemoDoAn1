@@ -1,0 +1,42 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+.eggs/
+*.egg-info/
+dist/
+build/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Models (nếu file quá lớn)
+# models/*.pkl
+# models/*.joblib
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node.js (Frontend)
+Fontend/node_modules/
+Fontend/dist/
+Fontend/.cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tunnel logs
+cloudflared-*.log

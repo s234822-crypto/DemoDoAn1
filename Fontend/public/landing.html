@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CardioPredict AI - Nền tảng AI dự đoán nguy cơ bệnh tim mạch" />
+    <title>CardioPredict AI | Trang tổng quan</title>
+    <style>
+        :root {
+            --red: #E53935;
+            --red-dark: #C62828;
+            --medical-blue: #0F4C81;
+            --medical-cyan: #19A7CE;
+            --bg-soft: #F7FBFF;
+            --text: #1F2937;
+            --muted: #5F6D7E;
+            --border: #E5EAF0;
+            --card-shadow: 0 10px 30px rgba(15, 76, 129, 0.08);
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 92% 8%, rgba(25, 167, 206, 0.12) 0%, transparent 42%),
+                radial-gradient(circle at 8% 88%, rgba(229, 57, 53, 0.12) 0%, transparent 40%),
+                #FFFFFF;
+            line-height: 1.55;
+        }
+
+        .container {
+            width: min(1160px, 92vw);
+            margin: 0 auto;
+        }
+
+        .section {
+            padding: 78px 0;
+        }
+
+        .section-title {
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            margin-bottom: 10px;
+            color: #0D1B2A;
+        }
+
+        .section-subtitle {
+            color: var(--muted);
+            max-width: 700px;
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            height: 74px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: #0E233B;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.06rem;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--red), var(--red-dark));
+            display: grid;
+            place-items: center;
+            box-shadow: 0 8px 20px rgba(198, 40, 40, 0.35);
+        }
+
+        .brand-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .nav a {
+            color: #30475E;
+            text-decoration: none;
+            font-size: 0.96rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav a:hover {
+            color: var(--red);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .theme-toggle {
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            border: 1px solid #D5E3EF;
+            background: #FFFFFF;
+            color: #173B5F;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-1px);
+            border-color: #BFD4E8;
+            box-shadow: 0 8px 20px rgba(15, 76, 129, 0.16);
+        }
+
+        .theme-toggle svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.96rem;
+            padding: 12px 22px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--red), #FF5D5A);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(229, 57, 53, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(229, 57, 53, 0.38);
+        }
+
+        .btn-ghost {
+            background: #fff;
+            border: 1px solid var(--border);
+            color: #173B5F;
+        }
+
+        .btn-ghost:hover {
+            border-color: #C7D7E7;
+            transform: translateY(-1px);
+        }
+
+        .hero {
+            padding: 74px 0 58px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.08fr 0.92fr;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid #DDE8F3;
+            background: #F8FCFF;
+            color: var(--medical-blue);
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.1rem);
+            line-height: 1.12;
+            letter-spacing: -0.03em;
+            color: #0A1F33;
+            margin-bottom: 16px;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 1.02rem;
+            max-width: 620px;
+            margin-bottom: 26px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .hero-card {
+            border: 1px solid #DCEAF7;
+            border-radius: 24px;
+            background: linear-gradient(160deg, #FFFFFF 0%, #F4FAFF 100%);
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-card::after {
+            content: "";
+            position: absolute;
+            right: -40px;
+            top: -40px;
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(229, 57, 53, 0.18), transparent 70%);
+        }
+
+        .mini-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mini-stat {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 11px 12px;
+        }
+
+        .mini-stat .k {
+            font-size: 0.76rem;
+            color: #6A7A8C;
+            margin-bottom: 3px;
+        }
+
+        .mini-stat .v {
+            font-size: 1.06rem;
+            font-weight: 700;
+            color: #0D2942;
+        }
+
+        .chart-box {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chart-title {
+            font-size: 0.83rem;
+            color: #38546F;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .features {
+            background: var(--bg-soft);
+            border-top: 1px solid #ECF3FA;
+            border-bottom: 1px solid #ECF3FA;
+        }
+
+        .cards {
+            margin-top: 26px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: 0 2px 6px rgba(16, 54, 90, 0.04);
+            transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-shadow);
+            border-color: #D6E7F7;
+        }
+
+        .icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 12px;
+            background: linear-gradient(145deg, #FFF0F0, #FFE0E0);
+            border: 1px solid #FFD0D0;
+        }
+
+        .icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--red);
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .card h3 {
+            font-size: 1.04rem;
+            margin-bottom: 7px;
+            color: #13293E;
+        }
+
+        .card p {
+            color: var(--muted);
+            font-size: 0.93rem;
+        }
+
+        .steps-grid {
+            margin-top: 26px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .step {
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: #fff;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--medical-cyan), var(--red));
+        }
+
+        .step .num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--medical-blue), var(--medical-cyan));
+            box-shadow: 0 6px 14px rgba(25, 167, 206, 0.3);
+        }
+
+        .step h4 {
+            margin-bottom: 6px;
+            color: #11304E;
+        }
+
+        .step p {
+            color: var(--muted);
+            font-size: 0.93rem;
+        }
+
+        .showcase {
+            background: linear-gradient(180deg, #FFFFFF 0%, #F8FCFF 100%);
+            border-top: 1px solid #ECF3FA;
+            border-bottom: 1px solid #ECF3FA;
+        }
+
+        .showcase-card {
+            margin-top: 26px;
+            border: 1px solid #DCEAF7;
+            border-radius: 22px;
+            background: #fff;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .showcase-top {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #FAFCFF;
+        }
+
+        .showcase-body {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 14px;
+        }
+
+        .panel {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            background: #fff;
+        }
+
+        .panel h5 {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: #17324B;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.83rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 7px;
+            border-bottom: 1px solid #EEF3F7;
+            text-align: left;
+            color: #3E556B;
+        }
+
+        .risk-high {
+            color: #C62828;
+            font-weight: 700;
+        }
+
+        .risk-mid {
+            color: #E57200;
+            font-weight: 700;
+        }
+
+        .risk-low {
+            color: #2E7D32;
+            font-weight: 700;
+        }
+
+        .cta-box {
+            border-radius: 26px;
+            padding: 44px 26px;
+            text-align: center;
+            background:
+                radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.22), transparent 48%),
+                linear-gradient(140deg, var(--medical-blue), #165F94 45%, var(--red));
+            color: #fff;
+            box-shadow: 0 14px 30px rgba(16, 68, 114, 0.26);
+        }
+
+        .cta-box h2 {
+            font-size: clamp(1.6rem, 3.5vw, 2.3rem);
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .cta-box p {
+            color: #E8F4FF;
+            margin-bottom: 18px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-box .btn-primary {
+            background: #fff;
+            color: #0F4C81;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+        }
+
+        footer {
+            background: #0E1E2D;
+            color: #D8E4EF;
+            padding: 42px 0 24px;
+            margin-top: 24px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr;
+            gap: 22px;
+            margin-bottom: 20px;
+        }
+
+        .footer-brand {
+            padding-right: 18px;
+        }
+
+        .footer-brand-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .footer-brand-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--red), #ef5350);
+        }
+
+        .footer-brand-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: #fff;
+        }
+
+        .footer-brand-title {
+            color: #fff;
+            font-size: 1.82rem;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .footer-brand-desc {
+            margin: 0 0 14px;
+            max-width: 310px;
+            color: #c5d6e6;
+            font-size: 0.95rem;
+        }
+
+        .social-list {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .social-link {
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(221, 234, 245, 0.18);
+            background: rgba(255, 255, 255, 0.08);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .social-link:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .social-link svg {
+            width: 14px;
+            height: 14px;
+            stroke: #e9f2fb;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .support-list,
+        .contact-list {
+            margin: 0;
+            padding: 0;
+        }
+
+        .feature-list li {
+            margin-bottom: 10px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #E9F1F8;
+        }
+
+        .contact-item svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--red);
+            fill: none;
+            stroke-width: 2;
+            flex-shrink: 0;
+        }
+
+        footer h4 {
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        footer p,
+        footer a,
+        footer li {
+            color: #C2D4E4;
+            font-size: 0.92rem;
+            text-decoration: none;
+            list-style: none;
+            margin-bottom: 6px;
+        }
+
+        footer a:hover {
+            color: #fff;
+        }
+
+        .copyright {
+            border-top: 1px solid rgba(194, 212, 228, 0.22);
+            padding-top: 14px;
+            font-size: 0.86rem;
+            color: #AFC3D5;
+            text-align: center;
+        }
+
+        body.dark-mode {
+            --bg-soft: #0F172A;
+            --text: #E2E8F0;
+            --muted: #94A3B8;
+            --border: #263548;
+            --card-shadow: 0 12px 28px rgba(2, 6, 23, 0.5);
+            background:
+                radial-gradient(circle at 88% 10%, rgba(25, 167, 206, 0.16) 0%, transparent 44%),
+                radial-gradient(circle at 10% 90%, rgba(229, 57, 53, 0.18) 0%, transparent 44%),
+                #0B1220;
+            color: var(--text);
+        }
+
+        body.dark-mode .site-header {
+            background: rgba(11, 18, 32, 0.9);
+            border-bottom-color: #1F2F45;
+        }
+
+        body.dark-mode .brand {
+            color: #E2E8F0;
+        }
+
+        body.dark-mode .nav a {
+            color: #C7D5E6;
+        }
+
+        body.dark-mode .nav a:hover {
+            color: #FF8A80;
+        }
+
+        body.dark-mode .theme-toggle {
+            background: #142033;
+            color: #D3E6FA;
+            border-color: #2A425D;
+        }
+
+        body.dark-mode .btn-ghost {
+            background: #122133;
+            border-color: #2A4057;
+            color: #D5E7FA;
+        }
+
+        body.dark-mode .section-title,
+        body.dark-mode .hero h1,
+        body.dark-mode .card h3,
+        body.dark-mode .step h4,
+        body.dark-mode .panel h5,
+        body.dark-mode .mini-stat .v,
+        body.dark-mode .chart-title,
+        body.dark-mode .showcase-top strong {
+            color: #E2E8F0 !important;
+        }
+
+        body.dark-mode .section-subtitle,
+        body.dark-mode .hero p,
+        body.dark-mode .card p,
+        body.dark-mode .step p,
+        body.dark-mode .mini-stat .k,
+        body.dark-mode .showcase-top span,
+        body.dark-mode .table th,
+        body.dark-mode .table td,
+        body.dark-mode .panel p {
+            color: #A7B7CB !important;
+        }
+
+        body.dark-mode .hero-card,
+        body.dark-mode .card,
+        body.dark-mode .step,
+        body.dark-mode .panel,
+        body.dark-mode .mini-stat,
+        body.dark-mode .chart-box,
+        body.dark-mode .showcase-card,
+        body.dark-mode .showcase-top {
+            background: #131E2E;
+            border-color: #2B3E56;
+            box-shadow: var(--card-shadow);
+        }
+
+        body.dark-mode .features {
+            background: #0D1828;
+            border-top-color: #1D2C41;
+            border-bottom-color: #1D2C41;
+        }
+
+        body.dark-mode .showcase {
+            background: linear-gradient(180deg, #0D1828 0%, #0B1524 100%);
+            border-top-color: #1D2C41;
+            border-bottom-color: #1D2C41;
+        }
+
+        body.dark-mode .icon {
+            background: linear-gradient(145deg, #2B1C24, #3B2127);
+            border-color: #5A2D36;
+        }
+
+        body.dark-mode .table th,
+        body.dark-mode .table td {
+            border-bottom-color: #2A3A50;
+        }
+
+        body.dark-mode .cta-box {
+            background:
+                radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.14), transparent 48%),
+                linear-gradient(140deg, #103A62, #0E4A78 45%, #8E2C2B);
+        }
+
+        @media (max-width: 992px) {
+            .nav {
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .hero-grid,
+            .showcase-body {
+                grid-template-columns: 1fr;
+            }
+
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .footer-brand {
+                grid-column: 1 / -1;
+                padding-right: 0;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .section {
+                padding: 60px 0;
+            }
+
+            .header-wrap {
+                height: auto;
+                padding: 12px 0;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav {
+                width: 100%;
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 6px;
+            }
+
+            .header-actions {
+                justify-content: flex-start;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-box {
+                padding: 34px 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container header-wrap">
+            <a class="brand" href="#trang-chu">
+                <span class="brand-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 0 1 7.5 3c1.74 0 3.41.81 4.5 2.08A6 6 0 0 1 16.5 3 5.5 5.5 0 0 1 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35Z" />
+                    </svg>
+                </span>
+                <span>CardioPredict AI</span>
+            </a>
+
+            <nav class="nav" aria-label="Điều hướng chính">
+                <a href="#trang-chu">Trang chủ</a>
+                <a href="#cong-cu">Công cụ dự đoán</a>
+                <a href="#phan-tich">Phân tích</a>
+                <a href="#bao-cao">Báo cáo</a>
+                <a href="#gioi-thieu">Giới thiệu</a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Chuyển chế độ tối"
+                    aria-pressed="false" title="Chuyển chế độ tối">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                </button>
+                <a class="btn btn-primary auth-cta" href="/login.html">Bắt đầu dự đoán</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero" id="trang-chu">
+            <div class="container hero-grid">
+                <div>
+                    <span class="badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 2v20M2 12h20" />
+                        </svg>
+                        Nền tảng AI chăm sóc tim mạch số
+                    </span>
+                    <h1>AI Dự Đoán Nguy Cơ Bệnh Tim Mạch</h1>
+                    <p>
+                        Sử dụng trí tuệ nhân tạo để phân tích các chỉ số sức khỏe và dự đoán nguy cơ mắc bệnh tim một
+                        cách nhanh chóng và chính xác.
+                    </p>
+                    <div class="hero-actions">
+                        <a class="btn btn-primary auth-cta" href="/login.html">Bắt đầu kiểm tra</a>
+                        <a class="btn btn-ghost" href="#gioi-thieu">Tìm hiểu thêm</a>
+                    </div>
+                </div>
+
+                <div class="hero-card">
+                    <div class="mini-grid">
+                        <div class="mini-stat">
+                            <div class="k">Độ tin cậy AI</div>
+                            <div class="v">94.2%</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="k">Ca đã phân tích</div>
+                            <div class="v">12,450+</div>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <div class="chart-title">Dashboard dự đoán nguy cơ tim</div>
+                        <svg viewBox="0 0 320 170" width="100%" height="170" aria-hidden="true">
+                            <rect x="0" y="0" width="320" height="170" rx="12" fill="#F8FBFF" stroke="#E3EDF8" />
+                            <line x1="24" y1="130" x2="298" y2="130" stroke="#DCE8F4" />
+                            <line x1="24" y1="96" x2="298" y2="96" stroke="#ECF2F9" />
+                            <line x1="24" y1="62" x2="298" y2="62" stroke="#ECF2F9" />
+                            <polyline points="24,120 62,112 98,98 132,88 168,74 204,62 236,52 272,42" fill="none"
+                                stroke="#E53935" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="272" cy="42" r="6" fill="#E53935" />
+                            <rect x="208" y="14" width="92" height="30" rx="15" fill="#0F4C81" />
+                            <text x="254" y="34" font-size="12" text-anchor="middle" fill="#fff">Nguy cơ cao</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section features" id="cong-cu">
+            <div class="container">
+                <h2 class="section-title">Tính năng nổi bật của hệ thống</h2>
+                <p class="section-subtitle">Nền tảng tập trung vào tốc độ, độ chính xác và khả năng diễn giải kết quả
+                    theo ngữ cảnh y tế.</p>
+
+                <div class="cards">
+                    <article class="card">
+                        <div class="icon">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" />
+                                <circle cx="12" cy="12" r="4" />
+                            </svg>
+                        </div>
+                        <h3>Dự đoán bằng AI</h3>
+                        <p>Phân tích dữ liệu sức khỏe bằng mô hình học máy để đánh giá nguy cơ tim mạch nhanh và nhất
+                            quán.</p>
+                    </article>
+
+                    <article class="card" id="phan-tich">
+                        <div class="icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M4 19h16M7 16V8M12 16V5M17 16v-3" />
+                            </svg>
+                        </div>
+                        <h3>Phân tích chỉ số</h3>
+                        <p>Đọc và đối chiếu huyết áp, cholesterol, nhịp tim và nhiều yếu tố lâm sàng quan trọng khác.
+                        </p>
+                    </article>
+
+                    <article class="card" id="bao-cao">
+                        <div class="icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M3 3v18h18" />
+                                <path d="M7 14l3-3 3 2 4-5" />
+                            </svg>
+                        </div>
+                        <h3>Thống kê thông minh</h3>
+                        <p>Hiển thị biểu đồ trực quan, xu hướng nguy cơ và báo cáo hỗ trợ theo dõi sức khỏe dài hạn.</p>
+                    </article>
+
+                    <article class="card">
+                        <div class="icon">
+                            <svg viewBox="0 0 24 24">
+                                <rect x="4" y="11" width="16" height="9" rx="2" />
+                                <path d="M8 11V8a4 4 0 1 1 8 0v3" />
+                            </svg>
+                        </div>
+                        <h3>Bảo mật dữ liệu</h3>
+                        <p>Thông tin sức khỏe được lưu trữ an toàn, có kiểm soát truy cập và chính sách bảo mật rõ ràng.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="cach-hoat-dong">
+            <div class="container">
+                <h2 class="section-title">Cách hoạt động</h2>
+                <p class="section-subtitle">Quy trình đơn giản gồm 3 bước để nhận đánh giá nguy cơ bệnh tim cho từng cá
+                    nhân.</p>
+
+                <div class="steps-grid">
+                    <article class="step">
+                        <div class="num">1</div>
+                        <h4>Nhập thông tin sức khỏe</h4>
+                        <p>Cung cấp các chỉ số cần thiết như tuổi, huyết áp, cholesterol, nhịp tim và các yếu tố liên
+                            quan.</p>
+                    </article>
+                    <article class="step">
+                        <div class="num">2</div>
+                        <h4>AI phân tích dữ liệu</h4>
+                        <p>Mô hình AI xử lý dữ liệu y tế, đo lường mức độ ảnh hưởng của từng chỉ số đến nguy cơ bệnh
+                            tim.</p>
+                    </article>
+                    <article class="step">
+                        <div class="num">3</div>
+                        <h4>Nhận kết quả dự đoán</h4>
+                        <p>Hệ thống trả kết quả nguy cơ kèm gợi ý theo dõi, giúp bạn chủ động quản lý sức khỏe tim mạch.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section showcase" id="gioi-thieu">
+            <div class="container">
+                <h2 class="section-title">Minh họa hệ thống</h2>
+                <p class="section-subtitle">Giao diện tổng hợp kết quả dự đoán AI, biểu đồ phân tích và bảng dữ liệu
+                    bệnh nhân theo thời gian thực.</p>
+
+                <div class="showcase-card">
+                    <div class="showcase-top">
+                        <strong style="color:#163653; font-size:0.96rem;">Dashboard AI Tim Mạch</strong>
+                        <span style="font-size:0.82rem; color:#5F7388;">Realtime Analytics</span>
+                    </div>
+                    <div class="showcase-body">
+                        <div class="panel">
+                            <h5>Biểu đồ phân tích nguy cơ</h5>
+                            <svg viewBox="0 0 520 220" width="100%" height="220" aria-hidden="true">
+                                <rect x="0" y="0" width="520" height="220" rx="12" fill="#F8FBFF" stroke="#E3EDF8" />
+                                <line x1="40" y1="182" x2="490" y2="182" stroke="#DCE8F4" />
+                                <line x1="40" y1="140" x2="490" y2="140" stroke="#ECF2F9" />
+                                <line x1="40" y1="98" x2="490" y2="98" stroke="#ECF2F9" />
+                                <line x1="40" y1="56" x2="490" y2="56" stroke="#ECF2F9" />
+                                <polyline points="40,170 90,160 140,144 190,136 240,118 290,98 340,90 390,72 440,58"
+                                    fill="none" stroke="#E53935" stroke-width="4" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <polyline points="40,170 90,168 140,164 190,154 240,148 290,138 340,132 390,124 440,114"
+                                    fill="none" stroke="#19A7CE" stroke-width="3" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div style="display:grid; gap:14px;">
+                            <div class="panel">
+                                <h5>Kết quả dự đoán AI</h5>
+                                <p style="font-size:0.9rem; color:#415A72; margin-bottom:8px;">Bệnh nhân A123 - Nguy cơ
+                                    hiện tại</p>
+                                <p class="risk-high" style="font-size:1.35rem;">78% - Mức cao</p>
+                            </div>
+                            <div class="panel">
+                                <h5>Bảng dữ liệu bệnh nhân</h5>
+                                <table class="table" aria-label="Bảng dữ liệu mẫu">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã</th>
+                                            <th>Nhịp tim</th>
+                                            <th>Huyết áp</th>
+                                            <th>Nguy cơ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>BN102</td>
+                                            <td>152</td>
+                                            <td>145/92</td>
+                                            <td class="risk-high">Cao</td>
+                                        </tr>
+                                        <tr>
+                                            <td>BN084</td>
+                                            <td>134</td>
+                                            <td>128/84</td>
+                                            <td class="risk-mid">TB</td>
+                                        </tr>
+                                        <tr>
+                                            <td>BN051</td>
+                                            <td>118</td>
+                                            <td>120/78</td>
+                                            <td class="risk-low">Thấp</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container">
+                <div class="cta-box">
+                    <h2>Kiểm tra nguy cơ bệnh tim của bạn ngay hôm nay</h2>
+                    <p>Nắm bắt sớm nguy cơ để chủ động theo dõi sức khỏe. Bắt đầu kiểm tra trong vài phút với công cụ AI
+                        của CardioPredict AI.</p>
+                    <a class="btn btn-primary auth-cta" href="/login.html">Bắt đầu dự đoán ngay</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-brand-head">
+                        <span class="footer-brand-icon">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 0 1 7.5 3c1.74 0 3.41.81 4.5 2.08A6 6 0 0 1 16.5 3 5.5 5.5 0 0 1 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35Z" />
+                            </svg>
+                        </span>
+                        <h4 class="footer-brand-title">CardioPredict AI</h4>
+                    </div>
+                    <p class="footer-brand-desc">Hệ thống AI tiên tiến giúp dự đoán nguy cơ bệnh tim mạch, bảo vệ sức
+                        khỏe của bạn và người thân.</p>
+                    <div class="social-list">
+                        <a class="social-link" href="#" aria-label="Facebook">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M15 8h-2a2 2 0 0 0-2 2v2h4l-.6 3H11v5H8v-5H5v-3h3v-2a5 5 0 0 1 5-5h2z" />
+                            </svg>
+                        </a>
+                        <a class="social-link" href="#" aria-label="Twitter">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M22 5.9a8.7 8.7 0 0 1-2.5.7 4.3 4.3 0 0 0 1.9-2.4 8.6 8.6 0 0 1-2.7 1 4.3 4.3 0 0 0-7.3 3v1A12.2 12.2 0 0 1 3 4.9a4.3 4.3 0 0 0 1.3 5.8 4.2 4.2 0 0 1-1.9-.5v.1a4.3 4.3 0 0 0 3.5 4.2 4.2 4.2 0 0 1-1.9.1 4.3 4.3 0 0 0 4 3 8.6 8.6 0 0 1-5.3 1.8H2a12.2 12.2 0 0 0 6.6 1.9c7.9 0 12.2-6.5 12.2-12.2v-.6A8.7 8.7 0 0 0 22 5.9z" />
+                            </svg>
+                        </a>
+                        <a class="social-link" href="#" aria-label="LinkedIn">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
+                                <rect x="2" y="9" width="4" height="12" />
+                                <circle cx="4" cy="4" r="2" />
+                            </svg>
+                        </a>
+                        <a class="social-link" href="#" aria-label="Instagram">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <rect x="3" y="3" width="18" height="18" rx="5" />
+                                <circle cx="12" cy="12" r="4" />
+                                <circle cx="17.5" cy="6.5" r="1" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Tính năng</h4>
+                    <ul class="feature-list">
+                        <li><a href="#">Dự đoán nguy cơ bằng AI</a></li>
+                        <li><a href="#">Phân tích chỉ số sức khỏe</a></li>
+                        <li><a href="#">Theo dõi lịch sử chẩn đoán</a></li>
+                        <li><a href="#">Báo cáo và biểu đồ trực quan</a></li>
+                        <li><a href="#">Xuất kết quả chẩn đoán PDF</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Liên hệ</h4>
+                    <ul class="contact-list">
+                        <li class="contact-item">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 4h16v16H4z" opacity="0" />
+                                <path d="M4 6l8 6 8-6" />
+                                <rect x="4" y="6" width="16" height="12" rx="2" />
+                            </svg>
+                            <span>viho317@gmail.com</span>
+                        </li>
+                        <li class="contact-item">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.08 4.18 2 2 0 0 1 4.06 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.63 2.62a2 2 0 0 1-.45 2.11L8 9.94a16 16 0 0 0 6.06 6.06l1.49-1.24a2 2 0 0 1 2.11-.45c.84.3 1.72.51 2.62.63A2 2 0 0 1 22 16.92z" />
+                            </svg>
+                            <span>+84 0397310520</span>
+                        </li>
+                        <li class="contact-item">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 21s-7-4.35-7-10a7 7 0 1 1 14 0c0 5.65-7 10-7 10z" />
+                                <circle cx="12" cy="11" r="2.5" />
+                            </svg>
+                            <span>Trường Đại Học Nam Cần Thơ</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <p class="copyright">Copyright © <span id="y"></span> CardioPredict AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const THEME_KEY = 'daivid_landing_theme';
+        const body = document.body;
+        const themeToggle = document.getElementById('theme-toggle');
+        const moonIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>';
+        const sunIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>';
+
+        function applyTheme(theme) {
+            const isDark = theme === 'dark';
+            body.classList.toggle('dark-mode', isDark);
+
+            if (themeToggle) {
+                themeToggle.setAttribute('aria-pressed', String(isDark));
+                themeToggle.setAttribute('aria-label', isDark ? 'Chuyển chế độ sáng' : 'Chuyển chế độ tối');
+                themeToggle.setAttribute('title', isDark ? 'Chuyển chế độ sáng' : 'Chuyển chế độ tối');
+                themeToggle.innerHTML = isDark ? sunIcon : moonIcon;
+            }
+
+            localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+        }
+
+        const savedTheme = localStorage.getItem(THEME_KEY);
+        applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const nextTheme = body.classList.contains('dark-mode') ? 'light' : 'dark';
+                applyTheme(nextTheme);
+            });
+        }
+
+        function syncAuthCtas() {
+            const hasToken = Boolean(localStorage.getItem('daivid_auth_token'));
+            const ctaButtons = document.querySelectorAll('.auth-cta');
+
+            ctaButtons.forEach((button) => {
+                button.setAttribute('href', hasToken ? '/' : '/login.html');
+            });
+        }
+
+        syncAuthCtas();
+
+        document.getElementById('y').textContent = String(new Date().getFullYear());
+    </script>
+</body>
+
+</html>
