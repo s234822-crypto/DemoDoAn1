@@ -70,7 +70,7 @@ Server chạy tại: http://127.0.0.1:5000
 cd Fontend
 npm run dev
 ```
-Giao diện tại: http://localhost:5173
+Giao diện tại: http://localhost:5175
 
 ## Deploy miễn phí trên Hugging Face Spaces
 
