@@ -3,7 +3,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // Use root base in local dev, but keep repo base for GitHub Pages build.
+  base: command === 'serve' ? '/' : '/AIDuDoanBenhTimMach/',
   plugins: [react()],
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
@@ -51,11 +53,11 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    outDir: 'build',
+    outDir: 'dist',
   },
   server: {
     host: '0.0.0.0',
-    port: 5173,
+    port: 5175,
     open: true,
     allowedHosts: true,
     proxy: {
@@ -66,4 +68,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

@@ -1,11 +1,11 @@
 FROM node:20-bookworm AS frontend-build
 
-WORKDIR /app/Fontend
+WORKDIR /workspace/DoAn_TimMach/Fontend
 
-COPY Fontend/package.json Fontend/package-lock.json ./
+COPY DoAn_TimMach/Fontend/package.json DoAn_TimMach/Fontend/package-lock.json ./
 RUN npm ci
 
-COPY Fontend/ ./
+COPY DoAn_TimMach/Fontend/ ./
 ENV VITE_API_URL=
 RUN npm run build
 
@@ -28,8 +28,10 @@ RUN apt-get update \
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . ./
-COPY --from=frontend-build /app/Fontend/build ./Fontend/build
+COPY DoAn_TimMach/ ./DoAn_TimMach/
+COPY --from=frontend-build /workspace/DoAn_TimMach/Fontend/build ./DoAn_TimMach/Fontend/build
+
+WORKDIR /app/DoAn_TimMach
 
 EXPOSE 7860
 

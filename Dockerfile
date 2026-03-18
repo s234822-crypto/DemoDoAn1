@@ -29,7 +29,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY DoAn_TimMach/ ./DoAn_TimMach/
-COPY --from=frontend-build /workspace/DoAn_TimMach/Fontend/build ./DoAn_TimMach/Fontend/build
+COPY --from=frontend-build /workspace/DoAn_TimMach/Fontend/dist ./DoAn_TimMach/Fontend/build
 
 WORKDIR /app/DoAn_TimMach
 

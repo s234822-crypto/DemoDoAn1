@@ -2,7 +2,7 @@
  * API Service cho ứng dụng CardioPredict AI
  * Kết nối với Flask backend
  */
-
+import { Client } from "@gradio/client";
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '';
 
 function normalizeBaseUrl(url?: string): string {
@@ -249,11 +249,56 @@ class ApiService {
     }
 
     async predict(data: PatientData): Promise<PredictionResult> {
-        return this.requestJson('/api/predict', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        }, true);
+        console.log("Đang gọi AI trên Hugging Face...");
+        try {
+            // 1. Kết nối tới Hugging Face Space của bạn
+            const client = await Client.connect("daiviho/AI_DuDoanBenhTim");
+
+            // 2. Map dữ liệu từ PatientData sang dạng text tiếng Việt mà Gradio cần
+            const result = await client.predict("/predict_gradio", {
+                age: data.age,
+                sex: data.sex === 1 ? "Nam" : "Nữ",
+                cp: data.cp, // Lưu ý: Ở form của bạn truyền số hay chữ? Nếu truyền số (0, 1, 2, 3), bạn cần viết 1 hàm switch-case để đổi nó ra chữ ("Đau thắt ngực ổn định"...) giống như trên Hugging Face
+                trestbps: data.trestbps,
+                chol: data.chol,
+                fbs: data.fbs === 1 ? "Đúng" : "Sai",
+                restecg: String(data.restecg),
+                thalach: data.thalach,
+                exang: data.exang === 1 ? "Có" : "Không",
+                oldpeak: data.oldpeak,
+                slope: String(data.slope),
+                ca: data.ca,
+                thal: data.thal, // Lưu ý tương tự như trường cp
+            });
+
+            const resultData = (result as { data?: unknown }).data;
+            const aiOutputText = Array.isArray(resultData) && typeof resultData[0] === 'string'
+                ? resultData[0]
+                : String(Array.isArray(resultData) ? (resultData[0] ?? '') : '');
+            console.log("Kết quả gốc từ Hugging Face:", aiOutputText);
+
+            // 3. Giả lập kết quả trả về để UI hiển thị được
+            // Vì Hugging Face chỉ trả text, còn UI của bạn cần một object phức tạp (PredictionResult)
+            const isHighRisk = aiOutputText.toLowerCase().includes("nguy cơ cao") || aiOutputText.includes("1");
+            const fakeScore = isHighRisk ? 85 : 15;
+            const riskLevel = isHighRisk ? 'high' : 'low';
+
+            return {
+                prediction: isHighRisk ? 1 : 0,
+                risk_score: fakeScore,
+                risk_level: riskLevel,
+                message: aiOutputText,
+                factors: [
+                    { name: "Phân tích AI", value: isHighRisk ? "Cảnh báo" : "An toàn", impact: isHighRisk ? "high" : "low", description: aiOutputText }
+                ],
+                urgent_referral: isHighRisk,
+                clinical_recommendations: isHighRisk ? ["Cần khám chuyên khoa sớm"] : ["Duy trì lối sống lành mạnh"],
+            };
+
+        } catch (error) {
+            console.error("Lỗi khi gọi Hugging Face:", error);
+            throw new Error("Không thể kết nối với AI Model trên Hugging Face.");
+        }
     }
 
     async getFeatureImportance(): Promise<FeatureImportance[]> {

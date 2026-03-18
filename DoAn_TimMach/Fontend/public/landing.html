@@ -866,7 +866,7 @@
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                     </svg>
                 </button>
-                <a class="btn btn-primary auth-cta" href="/login.html">Bắt đầu dự đoán</a>
+                <a class="btn btn-primary auth-cta" href="login.html">Bắt đầu dự đoán</a>
             </div>
         </div>
     </header>
@@ -888,7 +888,7 @@
                         cách nhanh chóng và chính xác.
                     </p>
                     <div class="hero-actions">
-                        <a class="btn btn-primary auth-cta" href="/login.html">Bắt đầu kiểm tra</a>
+                        <a class="btn btn-primary auth-cta" href="login.html">Bắt đầu kiểm tra</a>
                         <a class="btn btn-ghost" href="#gioi-thieu">Tìm hiểu thêm</a>
                     </div>
                 </div>
@@ -1088,7 +1088,7 @@
                     <h2>Kiểm tra nguy cơ bệnh tim của bạn ngay hôm nay</h2>
                     <p>Nắm bắt sớm nguy cơ để chủ động theo dõi sức khỏe. Bắt đầu kiểm tra trong vài phút với công cụ AI
                         của CardioPredict AI.</p>
-                    <a class="btn btn-primary auth-cta" href="/login.html">Bắt đầu dự đoán ngay</a>
+                    <a class="btn btn-primary auth-cta" href="login.html">Bắt đầu dự đoán ngay</a>
                 </div>
             </div>
         </section>
@@ -1203,6 +1203,18 @@
         const savedTheme = localStorage.getItem(THEME_KEY);
         applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
 
+        function getAppBasePath() {
+            const marker = '/AIDuDoanBenhTimMach/';
+            return window.location.pathname.includes(marker) ? marker : '/';
+        }
+
+        function withBase(path = '') {
+            const base = getAppBasePath();
+            const cleanPath = String(path).replace(/^\/+/, '');
+            if (!cleanPath) return base;
+            return base === '/' ? `/${cleanPath}` : `${base}${cleanPath}`;
+        }
+
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
                 const nextTheme = body.classList.contains('dark-mode') ? 'light' : 'dark';
@@ -1215,7 +1227,7 @@
             const ctaButtons = document.querySelectorAll('.auth-cta');
 
             ctaButtons.forEach((button) => {
-                button.setAttribute('href', hasToken ? '/' : '/login.html');
+                button.setAttribute('href', hasToken ? withBase('') : withBase('login.html'));
             });
         }
 
