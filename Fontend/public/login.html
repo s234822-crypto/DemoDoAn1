@@ -829,7 +829,6 @@
 <body>
 
     <div class="card">
-        <!-- ══ LEFT PANEL ══ -->
         <div class="left-panel">
             <div class="circle circle-1"></div>
             <div class="circle circle-2"></div>
@@ -867,17 +866,14 @@
             <div class="copyright">© 2026 CardioPredict AI · Phiên bản 2.1.0</div>
         </div>
 
-        <!-- ══ RIGHT PANEL ══ -->
         <div class="right-panel">
             <div class="form-wrapper">
 
-                <!-- Tabs -->
                 <div class="tabs">
                     <button class="tab-btn active" data-tab="login">Đăng nhập</button>
                     <button class="tab-btn" data-tab="register">Đăng ký</button>
                 </div>
 
-                <!-- ════ LOGIN FORM ════ -->
                 <div id="login-form" class="form-section active">
                     <div class="form-heading">
                         <div class="label-tag">CHÀO MỪNG TRỞ LẠI</div>
@@ -994,7 +990,6 @@
                     </div>
                 </div>
 
-                <!-- ════ REGISTER FORM ════ -->
                 <div id="register-form" class="form-section">
                     <div class="form-heading">
                         <div class="label-tag">TẠO TÀI KHOẢN MỚI</div>
@@ -1140,7 +1135,6 @@
                     </div>
                 </div>
 
-                <!-- ════ FORGOT PASSWORD FORM ════ -->
                 <div id="forgot-form" class="forgot-section">
                     <button type="button" class="back-link" onclick="closeForgotPassword()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -1165,7 +1159,6 @@
 
                     <div id="forgot-alert" class="alert"></div>
 
-                    <!-- Step 1: Email -->
                     <div id="forgot-step-1">
                         <div class="field">
                             <label for="forgot-email">Địa chỉ Email</label>
@@ -1184,14 +1177,12 @@
                         </button>
                     </div>
 
-                    <!-- OTP Preview (shown after sending) -->
                     <div id="otp-preview-box" class="otp-display" style="display:none">
                         <p>⚠️ Mã xác nhận của bạn (demo - thực tế sẽ gửi qua email):</p>
                         <div class="otp-code" id="otp-code-display"></div>
                         <p>Mã có hiệu lực trong 5 phút</p>
                     </div>
 
-                    <!-- Step 2: OTP -->
                     <div id="forgot-step-2" style="display:none">
                         <div class="field">
                             <label for="forgot-otp">Mã xác nhận (6 số)</label>
@@ -1219,7 +1210,6 @@
                         </div>
                     </div>
 
-                    <!-- Step 3: New Password -->
                     <div id="forgot-step-3" style="display:none">
                         <div class="field">
                             <label for="forgot-new-pw">Mật khẩu mới</label>
@@ -1323,7 +1313,11 @@
                     localStorage.setItem('daivid_auth_token', data.token);
                     localStorage.setItem('daivid_user', JSON.stringify(data.user));
                     showAlert(alertId, 'Đăng nhập Google thành công! Đang chuyển hướng...', 'success');
-                    setTimeout(() => { window.location.href = '/CongCuDuDoanBenhTim/'; }, 800);
+<<<<<<< HEAD
+                    setTimeout(() => { window.location.href = 'landing.html'; }, 800);
+=======
+                    setTimeout(() => { window.location.href = 'landing.html'; }, 800);
+>>>>>>> f414aade354f2a2a2c47c92a6485394a9ed7bb66
                 }
             } catch (err) {
                 showAlert(alertId, 'Không thể kết nối đến máy chủ. Vui lòng thử lại.', 'error');
@@ -1397,7 +1391,7 @@
 
         const existingToken = localStorage.getItem('daivid_auth_token');
         if (existingToken) {
-            window.location.replace('/CongCuDuDoanBenhTim/');
+            window.location.replace('landing.html');
         }
 
         // Initialize Google Sign-In now that fetchWithFallback is available
@@ -1521,7 +1515,11 @@
                     localStorage.setItem('daivid_auth_token', data.token);
                     localStorage.setItem('daivid_user', JSON.stringify(data.user));
                     showAlert('login-alert', 'Đăng nhập thành công! Đang chuyển hướng...', 'success');
-                    setTimeout(() => { window.location.href = '/CongCuDuDoanBenhTim/'; }, 800);
+<<<<<<< HEAD
+                    setTimeout(() => { window.location.href = 'landing.html'; }, 800);
+=======
+                    setTimeout(() => { window.location.href = 'landing.html'; }, 800);
+>>>>>>> f414aade354f2a2a2c47c92a6485394a9ed7bb66
                 }
             } catch (err) {
                 showAlert('login-alert', 'Không thể kết nối đến máy chủ. Vui lòng thử lại.', 'error');
