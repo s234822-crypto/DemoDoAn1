@@ -292,16 +292,17 @@ export function PatientsPage() {
             {/* Search and Filter */}
             <div className="flex items-center gap-4">
                 <div className="flex-1 relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280]" />
+                    <Search className="w-4 h-4 text-[#6B7280]" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                     <input
                         type="text"
                         placeholder="Tìm kiếm theo mã chẩn đoán..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C62828] focus:border-transparent"
+                        style={{ paddingLeft: '36px' }}
+                        className="w-full pr-4 py-2.5 bg-white border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C62828] focus:border-transparent"
                     />
                     {searchQuery && (
-                        <button onClick={() => setSearchQuery('')} title="Xóa tìm kiếm" aria-label="Xóa tìm kiếm" className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <button onClick={() => setSearchQuery('')} title="Xóa tìm kiếm" aria-label="Xóa tìm kiếm" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)' }}>
                             <X className="w-4 h-4 text-[#6B7280]" />
                         </button>
                     )}
@@ -336,7 +337,7 @@ export function PatientsPage() {
                                             ID <SortIcon field="id" />
                                         </button>
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-[#6B7280] uppercase tracking-wider">Người thực hiện</th>
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-[#6B7280] uppercase tracking-wider">Bệnh nhân</th>
                                     <th className="px-6 py-4 text-left text-xs font-medium text-[#6B7280] uppercase tracking-wider">
                                         <button onClick={() => handleSort('age')} className="flex items-center gap-1 hover:text-gray-900">
                                             Tuổi <SortIcon field="age" />

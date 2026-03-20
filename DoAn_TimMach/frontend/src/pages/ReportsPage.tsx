@@ -255,7 +255,7 @@ export function ReportsPage() {
                             <thead>
                                 <tr className="border-b border-[#E5E7EB]">
                                     <th className="text-left py-3 px-3 font-medium text-[#6B7280]">ID</th>
-                                    <th className="text-left py-3 px-3 font-medium text-[#6B7280]">Người dùng</th>
+                                    <th className="text-left py-3 px-3 font-medium text-[#6B7280]">Bệnh nhân</th>
                                     <th className="text-left py-3 px-3 font-medium text-[#6B7280]">Tuổi</th>
                                     <th className="text-left py-3 px-3 font-medium text-[#6B7280]">Giới tính</th>
                                     <th className="text-left py-3 px-3 font-medium text-[#6B7280]">Mức nguy cơ</th>

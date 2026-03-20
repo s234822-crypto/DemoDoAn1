@@ -70,7 +70,7 @@ export default function App() {
   const getUserRoleLabel = (): string => {
     try {
       const userStr = localStorage.getItem('daivid_user');
-      if (!userStr) return 'Người dùng';
+      if (!userStr) return 'Bác sĩ/Chuyên gia';
 
       const user = JSON.parse(userStr);
       const rawRole = String(user.role || user.userRole || '').trim().toLowerCase();
@@ -81,12 +81,12 @@ export default function App() {
         specialist: 'Chuyên gia',
         nurse: 'Điều dưỡng',
         staff: 'Nhân viên y tế',
-        user: 'Người dùng',
+        user: 'Bác sĩ/Chuyên gia',
       };
 
-      return roleMap[rawRole] || 'Người dùng';
+      return roleMap[rawRole] || 'Bác sĩ/Chuyên gia';
     } catch {
-      return 'Người dùng';
+      return 'Bác sĩ/Chuyên gia';
     }
   };
 
