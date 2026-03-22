@@ -36,7 +36,7 @@ export default function App() {
   useEffect(() => {
     const token = localStorage.getItem('daivid_auth_token');
     if (!token) {
-      window.location.href = '/CongCuDuDoanBenhTim/landing.html';
+      window.location.href = '/landing.html';
       return;
     }
     setIsAuthenticated(true);
@@ -45,11 +45,11 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('daivid_auth_token');
     localStorage.removeItem('daivid_user');
-    window.location.href = '/CongCuDuDoanBenhTim/landing.html';
+    window.location.href = '/landing.html';
   };
 
   const handleGoToLanding = () => {
-    window.location.href = '/CongCuDuDoanBenhTim/landing.html';
+    window.location.href = '/landing.html';
   };
 
   const getUserName = (): string => {
