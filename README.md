@@ -72,32 +72,6 @@ npm run dev
 ```
 Giao diện tại: http://localhost:5175
 
-## Deploy miễn phí trên Hugging Face Spaces
-
-Project này đã được chuẩn bị để chạy trên Hugging Face Spaces bằng Docker.
-
-### Cách deploy
-1. Tạo một Space mới trên Hugging Face.
-2. Chọn SDK là `Docker`.
-3. Push toàn bộ thư mục `DoAn_TimMach/` lên repo của Space.
-4. Hugging Face sẽ tự build từ `Dockerfile` và chạy app trên cổng `7860`.
-
-### Lưu ý khi chạy trên Hugging Face
-- Mặc định Space dùng `DB_MODE=sqlite` vì không thể truy cập SQL Server nội bộ trên máy cá nhân.
-- Frontend React được build trong Docker và được Flask phục vụ trực tiếp cùng domain.
-- Dữ liệu SQLite trên gói miễn phí là tạm thời: có thể mất khi Space rebuild hoặc restart.
-- Nếu muốn giữ dữ liệu lâu dài, cần dùng persistent storage hoặc chuyển sang DB cloud riêng.
-
-### URL sau deploy
-- Giao diện web nằm tại `/`
-- API info tại `/api`
-- Health check tại `/api/health`
-
-## Train lại Model (nếu cần)
-```bash
-python train_model.py
-```
-
 ## API Endpoints
 
 | Method | Endpoint | Mô tả |
